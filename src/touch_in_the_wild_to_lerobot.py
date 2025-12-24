@@ -51,6 +51,8 @@ class UmiDataset:
         self.umi_state_data_name = ROBOT_CONFIGS[robot_type].umi_state_data_name
         self.umi_action_data_name = ROBOT_CONFIGS[robot_type].umi_action_data_name
         self.camera_to_image_key = ROBOT_CONFIGS[robot_type].camera_to_image_key
+        self.tactile_sensors = ROBOT_CONFIGS[robot_type].tactile_sensors
+        self.tactile_shapes = ROBOT_CONFIGS[robot_type].tactile_shapes
 
     def _init_paths(self) -> None:
         """Initialize zarr file paths."""
@@ -88,7 +90,7 @@ class UmiDataset:
         
         for zarr_path in tqdm.tqdm(self.zarr_paths, desc="Loading Zarr files"):
             root = zarr.open(zarr_path, mode='r')
-            root= root["markers_placement_data.zarr"]
+            # root= root["markers_placement_data.zarr"]
             self.zarr_roots[zarr_path] = root  # Store the opened zarr root
             
             # Get episode boundaries
@@ -158,6 +160,18 @@ class UmiDataset:
         
         return images
 
+    def _parse_tactile(self, root, start_idx: int, end_idx: int) -> dict[str, np.ndarray]:
+        """Load and stack tactile data for all tactile sensors in the episode."""
+        tactile_data = {}
+        
+        for zarr_key, lerobot_key in self.tactile_sensors.items():
+            if zarr_key in root['data']:
+                # Load all frames for this episode
+                frames = root['data'][zarr_key][start_idx:end_idx]
+                tactile_data[lerobot_key] = frames.astype(np.float32)
+        
+        return tactile_data
+
     def get_item(self, index: int) -> dict:
         """Get a training sample from the dataset."""
         episode_info = self.episodes[index]
@@ -190,6 +204,9 @@ class UmiDataset:
         # Load camera images
         cameras = self._parse_images(root, start_idx, end_idx)
         
+        # Load tactile data
+        tactile = self._parse_tactile(root, start_idx, end_idx)
+        
         # Extract camera configuration
         if cameras:
             cam_height, cam_width = next(iter(cameras.values())).shape[1:3]
@@ -210,6 +227,7 @@ class UmiDataset:
             "state": state,
             "action": action,
             "cameras": cameras,
+            "tactile": tactile,
             "task": task,
             "data_cfg": data_cfg,
         }
@@ -276,6 +294,18 @@ def create_empty_dataset(
             ],
         }
 
+    # 添加触觉传感器特征
+    tactile_sensors = ROBOT_CONFIGS[robot_type].tactile_sensors
+    tactile_shapes = ROBOT_CONFIGS[robot_type].tactile_shapes
+    for zarr_key, lerobot_key in tactile_sensors.items():
+        if lerobot_key in tactile_shapes:
+            shape = tactile_shapes[lerobot_key]
+            features[f"observation.tactile.{lerobot_key}"] = {
+                "dtype": "float32",
+                "shape": shape,
+                "names": None,  # 触觉数据没有特定的维度名称
+            }
+
     return LeRobotDataset.create(
         repo_id=repo_id,
         fps=fps,
@@ -303,6 +333,7 @@ def populate_dataset(
         state = episode["state"]
         action = episode["action"]
         cameras = episode["cameras"]
+        tactile = episode["tactile"]
         task = episode["task"]
         episode_length = episode["episode_length"]
 
@@ -315,6 +346,10 @@ def populate_dataset(
 
             for camera, img_array in cameras.items():
                 frame[f"observation.images.{camera}"] = img_array[i]
+
+            # 添加触觉数据
+            for tactile_key, tactile_array in tactile.items():
+                frame[f"observation.tactile.{tactile_key}"] = tactile_array[i]
 
             dataset.add_frame(frame, task=task)
 
@@ -390,21 +425,21 @@ class ArgsConfig:
     """配置参数类 - 用于命令行参数或直接配置"""
     
     # 数据路径相关
-    raw_dir: Path = Path("./rawData/mv-umi/markers_placement_data.zarr.zip")
+    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/touch_in_the_wild/in_door_data/whiteboard_erasing/whiteboard_erasing.zarr.zip")
     """原始 zarr 文件路径或目录"""
     
-    project: str = "mv-umi"
+    project: str = "touch_in_the_wild"
     """项目名称 - 用于组织数据集"""
     
-    subtask: str = "test"
+    subtask: str = "whiteboard_erasing"
     """子任务名称 - 用作数据集名称"""
     
     # EEF 6Dof + Vision 信息配置
-    robot_type: str = "Norm_EE"
+    robot_type: str = "Touch_In_The_Wild"
     """机器人类型 - 必须在 constants.py 的 ROBOT_CONFIGS 中定义"""
 
     # 文本表述 
-    text: str = "Pick the glass bottle from the table and places it on the shelf"
+    text: str = "Erase all the words on the whiteboard"
     """人类指令"""
     
     # 数据集配置

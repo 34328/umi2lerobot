@@ -9,8 +9,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-dataset_root = os.path.expanduser("~/.cache/huggingface/lerobot/mv-umi/bottles_rack")
-dataset = LeRobotDataset(repo_id="bottles_rack", root=dataset_root)
+dataset_root = os.path.expanduser("~/.cache/huggingface/lerobot/UMI on Legs/pushing")
+dataset = LeRobotDataset(repo_id="pushing", root=dataset_root)
 
 # 打印数据集基本信息
 print("=== 数据集基本信息 ===")
@@ -21,7 +21,7 @@ print(f"FPS: {dataset.fps}")
 
 # 打印第一个样本的层级结构和shape
 print("\n=== 第一个样本结构 ===")
-idx = 1
+idx = 2
 
 zero_item = dataset[idx-1]
 first_item = dataset[idx]
@@ -54,7 +54,6 @@ action0 = zero_item['action']
 state0 = zero_item['observation.state']
 print(f"Action0: {action0},State0: {state0}")
 
-
 action1 = first_item['action']
 state1 = first_item['observation.state']
 print(f"Action1: {action1},State1: {state1}")
@@ -63,6 +62,10 @@ action2 = second_item['action']
 state2 = second_item['observation.state']
 print(f"Action2: {action2},State2: {state2}")
 
+# # 打印触觉数据
+# print("\n=== 触觉数据 ===")
+# tactile_data = zero_item['observation.tactile.camera0_tactile']
+# print(tactile_data[0])
 
 # print(f"Action values: {action.tolist()}")  # 转换为Python列表以便更清晰地显示数值
 

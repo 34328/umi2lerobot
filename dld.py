@@ -1,4 +1,4 @@
-# dld.py
+# # dld.py
 import os
 import sys
 
@@ -18,8 +18,8 @@ print("✅ 已禁用所有代理，强制使用 hf-mirror.com")
 # 现在才导入 huggingface_hub（避免它提前读取代理）
 from huggingface_hub import snapshot_download
 
-repo_id = "omarrayyann/mv-umi"
-local_dir = "./mv-umi-dataset"
+repo_id = "Fanqi-Lin/Processed-Task-Dataset"
+local_dir = "./rawData/Data_Scaling_Laws"
 
 try:
     snapshot_download(
@@ -28,7 +28,8 @@ try:
         local_dir=local_dir,
         max_workers=8,
         token=False,
-        cache_dir=None
+        cache_dir=None,
+        # allow_patterns=["in_the_wild_data/**"]
     )
     print("🎉 下载完成！")
 except Exception as e:
