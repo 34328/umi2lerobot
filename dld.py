@@ -18,20 +18,17 @@ print("✅ 已禁用所有代理，强制使用 hf-mirror.com")
 # 现在才导入 huggingface_hub（避免它提前读取代理）
 from huggingface_hub import snapshot_download
 
-repo_id = "Fanqi-Lin/Processed-Task-Dataset"
-local_dir = "./rawData/Data_Scaling_Laws"
+repo_id = "chuanyune/ViTaMIn_dataset"
+local_dir = "./rawData/ViTaMIn"
 
-try:
-    snapshot_download(
-        repo_id=repo_id,
-        repo_type="dataset",
-        local_dir=local_dir,
-        max_workers=8,
-        token=False,
-        cache_dir=None,
-        # allow_patterns=["in_the_wild_data/**"]
-    )
-    print("🎉 下载完成！")
-except Exception as e:
-    print(f"💥 下载失败: {e}", file=sys.stderr)
-    sys.exit(1)
+
+snapshot_download(
+    repo_id=repo_id,
+    repo_type="dataset",
+    local_dir=local_dir,
+    max_workers=8,
+    token=False,
+    cache_dir=None,
+    # allow_patterns=["in_the_wild_data/**"]
+)
+print("🎉 下载完成！")

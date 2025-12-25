@@ -9,8 +9,9 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-dataset_root = os.path.expanduser("~/.cache/huggingface/lerobot/UMI on Legs/pushing")
-dataset = LeRobotDataset(repo_id="pushing", root=dataset_root)
+subtask = "cup_in_the_wild"
+dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/UMI/{subtask}")
+dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
 print("=== 数据集基本信息 ===")
@@ -21,7 +22,7 @@ print(f"FPS: {dataset.fps}")
 
 # 打印第一个样本的层级结构和shape
 print("\n=== 第一个样本结构 ===")
-idx = 2
+idx = 1
 
 zero_item = dataset[idx-1]
 first_item = dataset[idx]

@@ -224,3 +224,84 @@ UMI zarr格式：
 </table>
 
 
+## 4. UMI
+
+UMI zarr格式：
+```bash
+/
+ ├── data
+ │   ├── camera0_rgb (309476, 224, 224, 3) uint8
+ │   ├── camera1_rgb (309476, 224, 224, 3) uint8
+ │   ├── robot0_eef_pos (309476, 3) float32
+ │   ├── robot0_eef_rot_axis_angle (309476, 3) float32
+ │   ├── robot0_gripper_width (309476, 1) float32
+ │   ├── robot1_eef_pos (309476, 3) float32
+ │   ├── robot1_eef_rot_axis_angle (309476, 3) float32
+ │   └── robot1_gripper_width (309476, 1) float32
+ └── meta
+     └── episode_ends (249,) int64
+```
+
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">是否包含触觉</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>bimanual_cloth_folding</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Fold cloth with two arms</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">249</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">60</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="2"><code>camera0_rgb</code><br><code>camera1_rgb</code><br>手腕 x2</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="2">双</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">否</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>bimanual_dish_washing</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Wash dishes with two arms</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">258</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>cup_in_the_table</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put the cup in the cup holder</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">305</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="3"><code>camera0_rgb</code><br>手腕</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center"
+			rowspan="3">单</td>
+		</tr>
+        <tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>cup_in_the_wild</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put the cup in the cup holder</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">1447</td>
+		</tr>
+        <tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>dynamic_tossing</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Tossing smaller objects into a square basin and larger objects into a circular basin</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">284</td>
+		</tr>
+	</tbody>
+</table>
+
+左右手划分：
+| 变量名 | 维度 | 对应状态 | 对应动作 |
+|--------|------|----------|----------|
+| robot0_eef_pos | (309476, 3) | observation.state[0:3] | action[0:3] |
+| robot0_eef_rot_axis_angle | (3) | observation.state[3:6] | action[3:6] |
+| robot0_gripper_width | (1) | observation.state[6] | action[6] |
+| robot1_eef_pos | (3) | observation.state[7:10] | action[7:10] |
+| robot1_eef_rot_axis_angle | (3) | observation.state[10:13] | action[10:13] |
+| robot1_gripper_width | (1) | observation.state[13] | action[13] |
+
+
+

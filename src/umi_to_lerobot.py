@@ -48,9 +48,14 @@ class UmiDataset:
         # Initialize paths and cache
         self._init_paths()
         self._init_cache()
-        self.umi_state_data_name = ROBOT_CONFIGS[robot_type].umi_state_data_name
-        self.umi_action_data_name = ROBOT_CONFIGS[robot_type].umi_action_data_name
-        self.camera_to_image_key = ROBOT_CONFIGS[robot_type].camera_to_image_key
+        
+        # 获取机器人配置
+        self.robot_config = ROBOT_CONFIGS[robot_type]
+        self.umi_state_data_name = self.robot_config.umi_state_data_name
+        self.umi_action_data_name = self.robot_config.umi_action_data_name
+        self.camera_to_image_key = self.robot_config.camera_to_image_key
+        self.is_bimanual = self.robot_config.is_bimanual
+        self.robot_prefixes = self.robot_config.robot_prefixes
 
     def _init_paths(self) -> None:
         """Initialize zarr file paths."""
@@ -121,6 +126,7 @@ class UmiDataset:
     def _extract_umi_data(self, root, start_idx: int, end_idx: int, data_names: list[str]) -> np.ndarray:
         """
         Extract and concatenate UMI data for specified data names.
+        Supports both single-arm and bimanual configurations.
         
         Args:
             root: Zarr root
@@ -130,16 +136,18 @@ class UmiDataset:
         
         Returns:
             Concatenated numpy array of shape (episode_length, total_dim)
+            For bimanual: concatenates robot0 and robot1 data
         """
         data_arrays = []
         
-        for data_name in data_names:
-            key = f"robot0_{data_name}"
-            data = root['data'][key][start_idx:end_idx]
-            # Ensure 2D shape
-            if len(data.shape) == 1:
-                data = data[:, np.newaxis]
-            data_arrays.append(data)
+        for robot_prefix in self.robot_prefixes:
+            for data_name in data_names:
+                key = f"{robot_prefix}_{data_name}"
+                data = root['data'][key][start_idx:end_idx]
+                # Ensure 2D shape
+                if len(data.shape) == 1:
+                    data = data[:, np.newaxis]
+                data_arrays.append(data)
         
         return np.concatenate(data_arrays, axis=1).astype(np.float32)
 
@@ -390,21 +398,21 @@ class ArgsConfig:
     """配置参数类 - 用于命令行参数或直接配置"""
     
     # 数据路径相关
-    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/UMI/dynamic_tossing.zarr.zip")
+    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/UMI/cup_in_the_lab.zarr.zip")
     """原始 zarr 文件路径或目录"""
     
     project: str = "UMI"
     """项目名称 - 用于组织数据集"""
     
-    subtask: str = "dynamic_tossing"
+    subtask: str = "cup_in_the_lab"
     """子任务名称 - 用作数据集名称"""
     
     # EEF 6Dof + Vision 信息配置
-    robot_type: str = "Norm_EE"
+    robot_type: str = "Bimanual_UMI"
     """机器人类型 - 必须在 constants.py 的 ROBOT_CONFIGS 中定义"""
 
     # 文本表述 
-    text: str = "Tossing smaller objects into a square basin and larger objects into a circular basin"
+    text: str = "Wash dishes with two arms"
     """人类指令"""
     
     # 数据集配置
