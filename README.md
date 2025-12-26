@@ -23,6 +23,16 @@ python src/convert_umi_to_lerobot.py
 > \home\user\.cache\huggingface\lerobot\{project_name}|{subtask_name}
 > ```
 
+
+## 可视化
+
+检查转化后的lerobot数据 是否正常且准确
+```bash
+python src/visualize_lerobot.py --root /path/to/lerobot/data
+```
+![alt text](image.png)
+
+
 ## 数据集
 这里面有一些是不能用，没有提供直接使用的源数据，作者上传损坏等，具体错误多种多样，有些还是假开源的，还有里面的触觉数据是不准确的。。。。
 
@@ -302,6 +312,77 @@ UMI zarr格式：
 | robot1_eef_pos | (3) | observation.state[7:10] | action[7:10] |
 | robot1_eef_rot_axis_angle | (3) | observation.state[10:13] | action[10:13] |
 | robot1_gripper_width | (1) | observation.state[13] | action[13] |
+
+
+## 5. Data Scaling Laws
+UMI zarr格式：
+```bash
+/
+ ├── data
+ │   ├── camera0_rgb (371534, 224, 224, 3) uint8
+ │   ├── robot0_demo_end_pose (371534, 6) float64
+ │   ├── robot0_demo_start_pose (371534, 6) float64
+ │   ├── robot0_eef_pos (371534, 3) float32
+ │   ├── robot0_eef_rot_axis_angle (371534, 3) float32
+ │   └── robot0_gripper_width (371534, 1) float32
+ └── meta
+     └── episode_ends (1733,) int64
+```
+
+这里有四种子任务，分别是移动鼠标，叠毛巾，倒水和拔插头，其中移动鼠标和倒水扩充了多场景下，数据集相对较大。
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">是否包含触觉</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>arrange_mouse</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Move the mouse over the mouse pad</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">3564</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">60</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>camera0_rgb</code> <br> 手腕</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">否</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>arrange_mouse_16_env_4_object</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Move the mouse over the mouse pad</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">6507</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>fold_towel</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">fold the towel</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">1573</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pour_water</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pour the water from the bottle into the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">3649</td>
+		</tr>
+				<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pour_water_16_env_4_object</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Grab the marker pen on the desktop and place it in the pen holder</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">6899</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>unplug_charger</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">unplug the charger</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">1733</td>
+		</tr>
+	</tbody>
+</table>
+
 
 
 

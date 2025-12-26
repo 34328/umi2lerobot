@@ -390,13 +390,13 @@ class ArgsConfig:
     """配置参数类 - 用于命令行参数或直接配置"""
     
     # 数据路径相关
-    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/UMI/dynamic_tossing.zarr.zip")
+    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/Data_Scaling_Laws/unplug_charger/dataset.zarr.zip")
     """原始 zarr 文件路径或目录"""
     
-    project: str = "UMI"
+    project: str = "Data_Scaling_Laws"
     """项目名称 - 用于组织数据集"""
     
-    subtask: str = "dynamic_tossing"
+    subtask: str = "unplug_charger"
     """子任务名称 - 用作数据集名称"""
     
     # EEF 6Dof + Vision 信息配置
@@ -404,7 +404,7 @@ class ArgsConfig:
     """机器人类型 - 必须在 constants.py 的 ROBOT_CONFIGS 中定义"""
 
     # 文本表述 
-    text: str = "Tossing smaller objects into a square basin and larger objects into a circular basin"
+    text: str = "unplug the charger"
     """人类指令"""
     
     # 数据集配置
