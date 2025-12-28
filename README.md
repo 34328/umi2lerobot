@@ -36,7 +36,23 @@ python src/visualize_lerobot.py --root /path/to/lerobot/data
 ## 数据集
 这里面有一些是不能用，没有提供直接使用的源数据，作者上传损坏等，具体错误多种多样，有些还是假开源的，还有里面的触觉数据是不准确的。。。。
 
-转换后的数据集大致如下
+转换后的数据集分字段名称如下：
+
+```
+{
+  observation.images.camera0_rgb: Tensor with shape torch.Size([3, 224, 224])
+  observation.state: Tensor with shape torch.Size([7])
+  action: Tensor with shape torch.Size([7])
+  observation.audio.mic_0: Tensor with shape torch.Size([800])
+  observation.audio.mic_1: Tensor with shape torch.Size([800])
+  timestamp: Tensor with shape torch.Size([])
+  frame_index: Tensor with shape torch.Size([])
+  episode_index: Tensor with shape torch.Size([])
+  index: Tensor with shape torch.Size([])
+  task_index: Tensor with shape torch.Size([])
+  task: str
+}
+```
 ### 1. MV-UMI: A Scalable Multi-View Interface for Cross-Embodiment Learning
 UMI zarr格式：
 ```bash
@@ -383,6 +399,158 @@ UMI zarr格式：
 	</tbody>
 </table>
 
+## ManiWAV
+
+1. 这个任务增加了语言字段，长度都是800，
+2. **前面所有的任务 action 都是使用robot0_eef_pos + robot0_eef_rot_axis_angle + robot0_gripper_width 按顺序拼接的，state是使用上一个时间戳的action（0时刻的state就是当前action）。**
+
+```bash
+/
+ ├── data
+ │   ├── camera0_rgb (107187, 224, 224, 3) uint8
+ │   ├── mic_0 (107187, 800) float64
+ │   ├── mic_1 (107187, 800) float64
+ │   ├── robot0_eef_pos (107187, 3) float32
+ │   ├── robot0_eef_rot_axis_angle (107187, 3) float32
+ │   └── robot0_gripper_width (107187, 1) float32
+ └── meta
+     └── episode_ends (119,) int64
+```
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Flip bagel</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Move the mouse over the mouse pad</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">283</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">60</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>camera0_rgb</code> <br> 手腕</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">音频</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;">
+			<strong>Flip bagel in the wild</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">flip the bagel</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">557</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Pour dice</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pour the dice to the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">145</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Strap wires with velcro tape</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Strap wires with velcro tape</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">193</td>
+		</tr>
+				<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Whiteboard Shape Wipe</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Wipe the words on the whiteboard clean</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">119</td>
+		</tr>
+	</tbody>
+</table>
+
+## ViTaMin
+这个任务增加了tactile字段，类似于夹爪内部的图像，夹取时候图像有明显变化，同时这里开始记录robot0_demo_end_pose 和robot0_demo_start_pose 字段。
+```python
+/
+ ├── data
+ │   ├── camera0_left_tactile (33173, 224, 224, 3) uint8
+ │   ├── camera0_rgb (33173, 224, 224, 3) uint8
+ │   ├── camera0_right_tactile (33173, 224, 224, 3) uint8
+ │   ├── robot0_demo_end_pose (33173, 6) float64
+ │   ├── robot0_demo_start_pose (33173, 6) float64
+ │   ├── robot0_eef_pos (33173, 3) float32
+ │   ├── robot0_eef_rot_axis_angle (33173, 3) float32
+ │   └── robot0_gripper_width (33173, 1) float32
+ └── meta
+     └── episode_ends (129,) int64
+```
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Articulated_Object_Manipulation</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Rotate the Articulated Object</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">75</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">60</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>camera0_rgb</code> <br> <code>left_tactile</code> <br><code>right_tactile</code> <br> 手腕+夹爪左右相机</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">-</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Dynamic_Peg_Insertion</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Insert a peg into a moving pile </td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">129</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Orange_Placement</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Move the orange and place it on the plate</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">110</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Scissor_Hanging</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Hang the scissors on the rack</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">134</td>
+		</tr>
+				<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Sponge_Insertion</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Insert the sponge into the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">138</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Test_Tube_Reorientation</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Test Tube Reorientation</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">161</td>
+		</tr>
+	</tbody>
+</table>
 
 
+## ManiForce
+```python
+/
+ ├── data
+ │   ├── action (25288, 8) float32
+ │   ├── ft_data (246357, 6) float32
+ │   ├── ft_timestamps (246357,) float64
+ │   ├── handeye_cam_1 (25288, 800, 1280, 3) uint8
+ │   ├── handeye_cam_2 (25288, 480, 640, 3) uint8
+ │   ├── img_timestamps (25288,) float64
+ │   ├── pose_wrt_start (25288, 7) float32
+ │   └── state (25288, 7) float32
+ └── meta
+     ├── episode_ends (107,) int64
+     ├── episode_ft_ends (107,) int64
+     └── episode_img_ends (107,) int64
+```
+1. 这里提供字段较多，没有将之前的eef_pos、eef_rot_axis_angle、gripper_width组合在一起，直接使用现成的action 和state，但是这个项目只有主页 代码和论文都没有，有很能是  `motors=["x","y","z","qx","qy","qz","qw","gripper"]` 不是之前的。
+2. 没有之前UMI论文中 state字段有上一时刻的action代替。
 

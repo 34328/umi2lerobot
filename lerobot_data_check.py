@@ -9,8 +9,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "unplug_charger"
-dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/Data_Scaling_Laws/{subtask}")
+subtask = "Battery_assembly"
+dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/ManiForce/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
@@ -54,14 +54,22 @@ print_structure(first_item)
 action0 = zero_item['action']
 state0 = zero_item['observation.state']
 print(f"Action0: {action0},State0: {state0}")
+# print(zero_item["observation.state.demo_start_pose"])
+# print(zero_item["observation.state.demo_end_pose"])
 
 action1 = first_item['action']
 state1 = first_item['observation.state']
 print(f"Action1: {action1},State1: {state1}")
+# print(first_item["observation.state.demo_start_pose"])
+# print(first_item["observation.state.demo_end_pose"])
 
 action2 = second_item['action']
 state2 = second_item['observation.state']
-print(f"Action2: {action2},State2: {state2}")
+# print(f"Action2: {action2},State2: {state2}")
+# print(second_item["observation.state.demo_start_pose"])
+# print(second_item["observation.state.demo_end_pose"])
+
+# print(" observation.audio.mic_0:", first_item['observation.audio.mic_0'])
 
 # # 打印触觉数据
 # print("\n=== 触觉数据 ===")
