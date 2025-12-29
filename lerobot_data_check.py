@@ -9,7 +9,7 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "Battery_assembly"
+subtask = "Box_flipping"
 dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/ManiForce/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 

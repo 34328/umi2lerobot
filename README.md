@@ -399,7 +399,7 @@ UMI zarr格式：
 	</tbody>
 </table>
 
-## ManiWAV
+## 6. ManiWAV
 
 1. 这个任务增加了语言字段，长度都是800，
 2. **前面所有的任务 action 都是使用robot0_eef_pos + robot0_eef_rot_axis_angle + robot0_gripper_width 按顺序拼接的，state是使用上一个时间戳的action（0时刻的state就是当前action）。**
@@ -464,7 +464,7 @@ UMI zarr格式：
 	</tbody>
 </table>
 
-## ViTaMin
+## 7. ViTaMin
 这个任务增加了tactile字段，类似于夹爪内部的图像，夹取时候图像有明显变化，同时这里开始记录robot0_demo_end_pose 和robot0_demo_start_pose 字段。
 ```python
 /
@@ -534,7 +534,7 @@ UMI zarr格式：
 </table>
 
 
-## ManiForce
+## 8. ManiForce
 ```python
 /
  ├── data
@@ -551,6 +551,70 @@ UMI zarr格式：
      ├── episode_ft_ends (107,) int64
      └── episode_img_ends (107,) int64
 ```
-1. 这里提供字段较多，没有将之前的eef_pos、eef_rot_axis_angle、gripper_width组合在一起，直接使用现成的action 和state，但是这个项目只有主页 代码和论文都没有，有很能是  `motors=["x","y","z","qx","qy","qz","qw","gripper"]` 不是之前的。
-2. 没有之前UMI论文中 state字段有上一时刻的action代替。
+1. 这里提供字段较多，没有将之前的eef_pos、eef_rot_axis_angle、gripper_width组合在一起，直接使用现成的action 和state，但是这个项目只有主页 代码和论文都没有，action 的8个数值可能是  `motors=["x","y","z","qx","qy","qz","qw","gripper"]` 不是之前的`rx,ry,rz`。
+2. 根据之前UMI论文中 state字段由上一时刻的action代替。
 
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Battery_assembly</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Assemble the battery in the appropriate position</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">107</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">30</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>handeye_cam_1</code> <br> <code>handeye_cam_2</code> <br> 手腕x2</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">-</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Battery_disassembly</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Disassemble the battery from the appropriate position</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">108</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Box_flipping</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Flip the box</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">69</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Gear_assembly</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Assemble the gear</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">101</td>
+		</tr>
+				<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>LAN_insertion</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Insert the LAN</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">110</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>Open_lid</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the lid</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">102</td>
+		</tr>
+	</tbody>
+</table>
+
+转为lerobot保存的字段如下：
+```python
+{
+  observation.images.handeye_cam_1: Tensor with shape torch.Size([3, 800, 1280])
+  observation.images.handeye_cam_2: Tensor with shape torch.Size([3, 480, 640])
+  observation.state: Tensor with shape torch.Size([7])
+  action: Tensor with shape torch.Size([8])
+  observation.state.pose_wrt_start: Tensor with shape torch.Size([7])
+  ...
+  ...
+}
+```

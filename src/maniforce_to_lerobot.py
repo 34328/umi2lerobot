@@ -433,13 +433,13 @@ class ArgsConfig:
     """ManiForce 数据集转换配置参数"""
     
     # 数据路径相关
-    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/ManipForce/Battery_assembly.zarr")
+    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/ManipForce/Open_lid.zarr")
     """原始 zarr 文件路径或目录"""
     
     project: str = "ManiForce"
     """项目名称 - 用于组织数据集"""
     
-    subtask: str = "Battery_assembly"
+    subtask: str = "Open_lid"
     """子任务名称 - 用作数据集名称"""
     
     # 机器人配置
@@ -447,7 +447,7 @@ class ArgsConfig:
     """机器人类型 - 必须在 constants.py 的 ROBOT_CONFIGS 中定义"""
 
     # 文本表述 
-    text: str = "Assemble the battery in the appropriate position"
+    text: str = "Open the lid"
     """人类指令"""
     
     # 数据集配置
