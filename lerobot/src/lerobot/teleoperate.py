@@ -18,7 +18,7 @@ Simple script to control a robot from teleoperation.
 Example:
 
 ```shell
-lerobot-teleoperate \
+python -m lerobot.teleoperate \
     --robot.type=so101_follower \
     --robot.port=/dev/tty.usbmodem58760431541 \
     --robot.cameras="{ front: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30}}" \
@@ -32,7 +32,7 @@ lerobot-teleoperate \
 Example teleoperation with bimanual so100:
 
 ```shell
-lerobot-teleoperate \
+python -m lerobot.teleoperate \
   --robot.type=bi_so100_follower \
   --robot.left_arm_port=/dev/tty.usbmodem5A460851411 \
   --robot.right_arm_port=/dev/tty.usbmodem5A460812391 \

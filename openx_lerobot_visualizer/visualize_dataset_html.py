@@ -389,7 +389,7 @@ def main():
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path("/home/unitree/.cache/huggingface/lerobot/UMI/cup_in_the_wild"),
+        default=Path("/home/unitree/.cache/huggingface/lerobot/behavior/sim_behavior_r1_pro.task-0000_turning_on_radio"),
         help="Root directory for a dataset stored locally (直接指向数据集目录,例如: /path/to/lerobot/org/dataset).",
     )
     parser.add_argument(

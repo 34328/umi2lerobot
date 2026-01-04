@@ -18,7 +18,7 @@ Helper to find the USB port associated with your MotorsBus.
 Example:
 
 ```shell
-lerobot-find-port
+python -m lerobot.find_port
 ```
 """
 

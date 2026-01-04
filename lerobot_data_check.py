@@ -1,5 +1,9 @@
 import sys
 import os
+import torch
+
+# 设置 PyTorch 打印精度，显示更多小数位
+torch.set_printoptions(precision=10, sci_mode=False)
 
 # 方法2: 直接指向包含lerobot包的目录
 project_root = os.path.dirname(__file__)
@@ -9,8 +13,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "Box_flipping"
-dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/ManiForce/{subtask}")
+subtask = "cup_shelving_real"
+dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/LEGATO/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
@@ -22,7 +26,7 @@ print(f"FPS: {dataset.fps}")
 
 # 打印第一个样本的层级结构和shape
 print("\n=== 第一个样本结构 ===")
-idx = 1
+idx = 12
 
 zero_item = dataset[idx-1]
 first_item = dataset[idx]
@@ -50,26 +54,32 @@ def print_structure(data, indent=0):
 
 print_structure(first_item)
 
-# 新增：打印action数值
-action0 = zero_item['action']
-state0 = zero_item['observation.state']
-print(f"Action0: {action0},State0: {state0}")
-# print(zero_item["observation.state.demo_start_pose"])
-# print(zero_item["observation.state.demo_end_pose"])
+# 打印指定 item 的所有非图像观测数据
+def print_item_obs(name, item):
+    print(f"\n--- {name} ---")
+    
+    # 打印 action
+    if 'action' in item:
+        print(f"Action: {item['action']}")
+    
+    # 打印所有非图像的 observation 字段
+    for key, value in item.items():
+        if key.startswith('observation.') and 'images' not in key:
+            # 跳过 state (因为通常和 action 类似，如果已经在上面打印过 action)
+            # 但这里用户也想看 state，所以都打印
+            if hasattr(value, 'shape') and len(value.shape) > 0:
+                 print(f"{key}: {value}")
+            elif hasattr(value, 'item'):
+                 print(f"{key}: {value.item()}")
+            else:
+                 print(f"{key}: {value}")
 
-action1 = first_item['action']
-state1 = first_item['observation.state']
-print(f"Action1: {action1},State1: {state1}")
-# print(first_item["observation.state.demo_start_pose"])
-# print(first_item["observation.state.demo_end_pose"])
+print_item_obs("Item (idx-1)", zero_item)
+print_item_obs("Item (idx)", first_item)
+print_item_obs("Item (idx+1)", second_item)
 
-action2 = second_item['action']
-state2 = second_item['observation.state']
-# print(f"Action2: {action2},State2: {state2}")
-# print(second_item["observation.state.demo_start_pose"])
-# print(second_item["observation.state.demo_end_pose"])
 
-# print(" observation.audio.mic_0:", first_item['observation.audio.mic_0'])
+
 
 # # 打印触觉数据
 # print("\n=== 触觉数据 ===")

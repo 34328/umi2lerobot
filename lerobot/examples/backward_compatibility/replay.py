@@ -18,7 +18,7 @@ Replays the actions of an episode from a dataset on a robot.
 Example:
 
 ```shell
-lerobot-replay \
+python -m lerobot.replay \
     --robot.type=so100_follower \
     --robot.port=/dev/tty.usbmodem58760431541 \
     --robot.id=black \

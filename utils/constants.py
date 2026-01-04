@@ -262,6 +262,107 @@ MANIFORCE_CONFIG = RobotConfig(
 )
 
 
+# LEGATO 配置 - 双手腕灰度相机 + 多种观测数据
+# 数据结构:
+#   actions: (N, 7) - 7维动作 (x, y, z, rx, ry, rz, gripper)
+#   obs/left_gray: (N, 128, 128, 1) - 左手腕灰度图
+#   obs/right_gray: (N, 128, 128, 1) - 右手腕灰度图
+#   obs/delta_eulers: (N, 6) - 欧拉角增量
+#   obs/delta_positions: (N, 6) - 位置增量
+#   obs/delta_quaternions: (N, 8) - 四元数增量
+#   obs/quaternions: (N, 8) - 四元数
+#   obs/position_diffs: (N, 6) - 位置差异
+#   dones: (N,) - 完成标志
+#   rewards: (N,) - 奖励
+LEGATO_SIM_CONFIG = RobotConfig(
+    motors=[
+        "x",
+        "y",
+        "z",
+        "rx",
+        "ry",
+        "rz",
+        "gripper",
+    ],
+
+    cameras=[
+        "left_gray",
+        "right_gray",
+    ],
+
+    camera_to_image_key={
+        "left_gray": "left_gray",
+        "right_gray": "right_gray",
+    },
+    umi_state_data_name=[],  # 特殊处理，直接读取 actions 作为 state
+    umi_action_data_name=[],  # 特殊处理，直接读取 actions 字段
+    
+    # LEGATO 观测数据配置
+    demo_pose_sensors={
+        "delta_eulers": "delta_eulers",
+        "delta_positions": "delta_positions",
+        "delta_quaternions": "delta_quaternions",
+        "quaternions": "quaternions",
+        "position_diffs": "position_diffs",
+    },
+    demo_pose_shapes={
+        "delta_eulers": (6,),
+        "delta_positions": (6,),
+        "delta_quaternions": (8,),
+        "quaternions": (8,),
+        "position_diffs": (6,),
+    },
+)
+
+
+# LEGATO 配置 - 真实数据 (双手腕灰度相机 + 多种观测数据)
+# 数据结构:
+#   actions: (N, 7) - 7维动作 (x, y, z, rx, ry, rz, gripper)
+#   obs/left_gray: (N, 128, 128, 1) - 左手腕灰度图
+#   obs/right_gray: (N, 128, 128, 1) - 右手腕灰度图
+#   obs/delta_eulers: (N, 6) - 欧拉角增量
+#   obs/delta_positions: (N, 6) - 位置增量
+#   obs/delta_quaternions: (N, 8) - 四元数增量
+#   obs/graspings: (N, 2) - 抓取状态
+#   dones: (N,) - 完成标志
+#   rewards: (N,) - 奖励
+LEGATO_REAL_CONFIG = RobotConfig(
+    motors=[
+        "x",
+        "y",
+        "z",
+        "rx",
+        "ry",
+        "rz",
+        "gripper",
+    ],
+
+    cameras=[
+        "left_gray",
+        "right_gray",
+    ],
+
+    camera_to_image_key={
+        "left_gray": "left_gray",
+        "right_gray": "right_gray",
+    },
+    umi_state_data_name=[],  # 特殊处理，直接读取 actions 作为 state
+    umi_action_data_name=[],  # 特殊处理，直接读取 actions 字段
+    
+    # LEGATO 真实数据观测配置
+    demo_pose_sensors={
+        "delta_eulers": "delta_eulers",
+        "delta_positions": "delta_positions",
+        "delta_quaternions": "delta_quaternions",
+    },
+    demo_pose_shapes={
+        "delta_eulers": (6,),
+        "delta_positions": (6,),
+        "delta_quaternions": (8,),
+    },
+)
+
+
 ROBOT_CONFIGS = {
     # "Unitree_G1_Inspire": G1_INSPIRE_CONFIG,
     "Norm_EE": MV_UMI_CONFIG,
@@ -271,4 +372,6 @@ ROBOT_CONFIGS = {
     "ManiWAV": MANIWAV_CONFIG,
     "ViTaMIn": VITAMIN_CONFIG,
     "ManiForce": MANIFORCE_CONFIG,
+    "LEGATO_SIM": LEGATO_SIM_CONFIG,
+    "LEGATO_REAL": LEGATO_REAL_CONFIG,
 }

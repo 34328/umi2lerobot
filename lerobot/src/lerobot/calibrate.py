@@ -18,7 +18,7 @@ Helper to recalibrate your device (robot or teleoperator).
 Example:
 
 ```shell
-lerobot-calibrate \
+python -m lerobot.calibrate \
     --teleop.type=so100_leader \
     --teleop.port=/dev/tty.usbmodem58760431551 \
     --teleop.id=blue

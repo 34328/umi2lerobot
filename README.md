@@ -28,7 +28,7 @@ python src/convert_umi_to_lerobot.py
 
 检查转化后的lerobot数据 是否正常且准确
 ```bash
-python src/visualize_lerobot.py --root /path/to/lerobot/data
+python openx_lerobot_visualizer/visualize_dataset_html.py --root /path/to/lerobot/data
 ```
 ![alt text](image.png)
 
@@ -614,6 +614,116 @@ UMI zarr格式：
   observation.state: Tensor with shape torch.Size([7])
   action: Tensor with shape torch.Size([8])
   observation.state.pose_wrt_start: Tensor with shape torch.Size([7])
+  ...
+  ...
+}
+```
+
+
+## 9. LEGATO 
+
+这是HDF5格式的数据，三个任务，但是分为仿真sim的和真实real的，个别几个字段不同，数据结构分别如下：
+
+```python
+# 仿真sim
+📁 /
+├── 📁 data/
+│   ├── 📁 demo_1/ ... demo_99/    (共 99 个演示)
+│   │   ├── 📄 actions         (N, 7) float32    # 机器人动作
+│   │   ├── 📄 dones           (N,) uint8        # 是否结束
+│   │   ├── 📄 rewards         (N,) float32      # 奖励值
+│   │   └── 📁 obs/                              # 观测数据
+│   │       ├── 📄 delta_eulers      (N, 6) float32   # 欧拉角增量
+│   │       ├── 📄 delta_positions   (N, 6) float32   # 位置增量
+│   │       ├── 📄 delta_quaternions (N, 8) float32   # 四元数增量
+│   │       ├── 📄 left_gray         (N, 128, 128, 1) uint8  # 左相机灰度图
+│   │       ├── 📄 position_diffs    (N, 6) float32   # 位置差
+│   │       ├── 📄 quaternions       (N, 8) float32   # 四元数
+│   │       └── 📄 right_gray        (N, 128, 128, 1) uint8  # 右相机灰度图
+│   │
+└── 📁 mask/
+    ├── 📄 train    (135,) |S8    # 训练集 demo 名称列表
+    └── 📄 valid    (15,) |S8     # 验证集 demo 名称列表
+
+```
+
+```python
+# 真实real
+📁 /
+├── 📁 data/
+│   ├── 📁 demo_1/ ... demo_150/    (共 150 个演示)
+│   │   ├── 📄 actions         (N, 7) float32    # 机器人动作
+│   │   ├── 📄 dones           (N,) uint8        # 是否结束
+│   │   ├── 📄 rewards         (N,) float32      # 奖励值
+│   │   └── 📁 obs/                              # 观测数据
+│   │       ├── 📄 delta_eulers      (N, 6) float32   # 欧拉角增量
+│   │       ├── 📄 delta_positions   (N, 6) float32   # 位置增量
+│   │       ├── 📄 delta_quaternions (N, 8) float32   # 四元数增量
+│   │       ├── 📄 graspings         (N, 2) float32   # 抓取状态
+│   │       ├── 📄 left_gray         (N, 128, 128, 1) uint8  # 左相机灰度图
+│   │       └── 📄 right_gray        (N, 128, 128, 1) uint8  # 右相机灰度图
+│   │
+└── 📁 mask/
+    ├── 📄 train    (135,) |S8    # 训练集 demo 名称列表
+    └── 📄 valid    (15,) |S8     # 验证集 demo 名称列表
+
+```
+> 注意:
+1. 这个数据只提供单通道灰度图，但是lerobot 要求是三通道，所以这里将其广播复制到三通道.
+2. 原始数据中的mask字段是 区分训练集和验证集的，这里写到 mask.json 中，和data/video 同级目录。
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>closing the lid</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">closing the lid</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">150+150 <br>(real+sim)</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">30</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>left_gray</code> <br> <code>right_gray</code> <br> 手腕x2</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">-</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>cup_shelving</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Move the cup inside the cabinet</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">150+150 <br>(real+sim)</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>ladle_reorganization</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put the ladle on the plate</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">150+150 <br>(real+sim)</td>
+		</tr>
+
+
+
+	</tbody>
+</table>
+转好的lerobot字段为
+
+```python
+{
+  observation.images.left_gray: Tensor with shape torch.Size([3, 128, 128])
+  observation.images.right_gray: Tensor with shape torch.Size([3, 128, 128])
+  observation.state: Tensor with shape torch.Size([7])
+  action: Tensor with shape torch.Size([7])
+  observation.delta_eulers: Tensor with shape torch.Size([6])
+  observation.delta_positions: Tensor with shape torch.Size([6])
+  observation.delta_quaternions: Tensor with shape torch.Size([8])
+  observation.dones: Tensor with shape torch.Size([])
+  observation.rewards: Tensor with shape torch.Size([])
   ...
   ...
 }
