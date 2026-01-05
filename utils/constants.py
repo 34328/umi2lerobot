@@ -363,6 +363,45 @@ LEGATO_REAL_CONFIG = RobotConfig(
 )
 
 
+# DexUMI 配置 - 灵巧手操作数据
+# 数据结构:
+#   camera_0/rgb: (N, 400, 640, 3) - RGB相机图像
+#   fsr: (N, 2) - 力敏电阻传感器
+#   hand_action: (N, 6) - 手部动作 (Inspire Hand 6个电机关节)
+#   pose: (N, 6) - 末端位姿 (x, y, z, rx, ry, rz)
+#   proprioception: (N, 6) - 本体感知 (Inspire Hand 6个电机关节)
+DEXUMI_CONFIG = RobotConfig(
+    motors=[
+        "kHandPinky",
+        "kHandRing",
+        "kHandMiddle",
+        "kHandIndex",
+        "kHandThumbBend",
+        "kHandThumbRotation"
+    ],
+
+    cameras=[
+        "camera_0",
+    ],
+
+    camera_to_image_key={
+        "camera_0": "camera_0",
+    },
+    umi_state_data_name=[],  # 特殊处理，直接读取 proprioception 字段
+    umi_action_data_name=[],  # 特殊处理，直接读取 hand_action 字段
+    
+    # DexUMI 额外观测数据配置
+    demo_pose_sensors={
+        "fsr": "fsr",
+        "pose": "pose",
+    },
+    demo_pose_shapes={
+        "fsr": (2,),
+        "pose": (6,),  # x, y, z, rx, ry, rz
+    },
+)
+
+
 ROBOT_CONFIGS = {
     # "Unitree_G1_Inspire": G1_INSPIRE_CONFIG,
     "Norm_EE": MV_UMI_CONFIG,
@@ -374,4 +413,5 @@ ROBOT_CONFIGS = {
     "ManiForce": MANIFORCE_CONFIG,
     "LEGATO_SIM": LEGATO_SIM_CONFIG,
     "LEGATO_REAL": LEGATO_REAL_CONFIG,
+    "DexUMI": DEXUMI_CONFIG,
 }
