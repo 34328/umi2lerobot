@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "lerobot" / "src"))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "utils"))
 
 import zarr
-# from lerobot.constants import HF_LEROBOT_HOME
+from lerobot.constants import HF_LEROBOT_HOME
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 from constants import ROBOT_CONFIGS
@@ -156,20 +156,20 @@ def create_empty_dataset(
                 motors,
             ],
         },
-        # hand_action 作为 action (Inspire Hand 6个关节)
-        "action": {
+        # hand_action (Inspire Hand 6个关节)
+        "hand_action": {
             "dtype": "float32",
             "shape": (len(motors),),
             "names": [
                 motors,
             ],
         },
-        # fsr 力敏电阻 (2D)
+        # fsr 力敏电阻 (3D)
         "observation.fsr": {
             "dtype": "float32",
-            "shape": (2,),
+            "shape": (3,),
             "names": [
-                ["fsr_0", "fsr_1"],
+                ["fsr_0", "fsr_1", "fsr_2"],
             ],
         },
         # pose 末端位姿 (笛卡尔空间)
@@ -229,7 +229,7 @@ def populate_dataset(
         for j in range(episode_length):
             frame = {
                 "observation.state": state[j],
-                "action": action[j],
+                "hand_action": action[j],
                 "observation.fsr": fsr[j],
                 "observation.pose": pose[j],
             }
@@ -274,8 +274,8 @@ def dexumi_to_lerobot(
     The dataset will be saved to: {lerbot_home}/{project}/{repo_id}
     """
     # 构建保存路径: {HF_LEROBOT_HOME}/{project}/{subtask}
-    lerbot_home = Path("/mnt/raid0/UMI2Lerobot/lerobot")
-    dataset_root = lerbot_home / project / repo_id
+    # lerbot_home = Path("/mnt/raid0/UMI2Lerobot/lerobot")
+    dataset_root = HF_LEROBOT_HOME / project / repo_id
     
     print(f"\n{'='*60}")
     print(f"Dataset will be saved to: {dataset_root}")
@@ -309,19 +309,19 @@ class ArgsConfig:
     """配置参数类 - 用于命令行参数或直接配置"""
     
     # 数据路径相关
-    raw_dir: Path = Path("/mnt/raid0/UMI2Lerobot/rawData/DexUMI")
+    raw_dir: Path = Path("/home/unitree/桌面/umi2lerobot/rawData/DexUMI")
     """原始 DexUMI 数据根目录"""
     
-    task_name: str = "inspire_egg_carton"
+    task_name: str = "xhand_kitchen"
     """任务名称 (子文件夹名)"""
     
-    date_folder: str = "eggbox_1_29_dataset"
+    date_folder: str = "xhand_wild_4_14_dataset"
     """日期数据文件夹名 (如 eggbox_1_29_dataset)"""
     
     project: str = "DexUMI"
     """项目名称 - 用于组织数据集"""
     
-    subtask: str = "eggbox_1_29"
+    subtask: str = f"{task_name}_{date_folder}"
     """子任务名称 - 用作数据集名称"""
     
     # 机器人类型配置
@@ -329,11 +329,11 @@ class ArgsConfig:
     """机器人类型 - 必须在 constants.py 的 ROBOT_CONFIGS 中定义"""
 
     # 文本表述 
-    text: str = "Pick up the egg carton with dexterous hand"
+    text: str = "Turn off the stove knob, move the pan to the countertop, grab the seasoning and sprinkle it on the food"
     """人类指令"""
     
     # 数据集配置
-    fps: int = 60
+    fps: int = 30
     """数据集帧率 (frames per second)"""
     
     image_shape: tuple[int, int, int] = (400, 640, 3)

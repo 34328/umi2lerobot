@@ -706,9 +706,6 @@ UMI zarr格式：
 			<td style="border: 1px solid #ccc; padding: 6px;">Put the ladle on the plate</td>
 			<td style="border: 1px solid #ccc; padding: 6px;" align="center">150+150 <br>(real+sim)</td>
 		</tr>
-
-
-
 	</tbody>
 </table>
 转好的lerobot字段为
@@ -726,5 +723,77 @@ UMI zarr格式：
   observation.rewards: Tensor with shape torch.Size([])
   ...
   ...
+}
+```
+## 10.DexUMI
+这个项目其实就三个子任务，但是作者根据采集的日期又在每个任务下分了几个子任务，内容一样。
+
+```python
+/
+ ├── camera_0
+ │   └── rgb (571, 400, 640, 3) uint8
+ ├── fsr (571, 3) float64
+ ├── hand_action (571, 12) float32
+ ├── pose (571, 6) float64
+ └── proprioception (571, 12) float32
+ ```
+> 注意:
+ 1. 有两种灵巧手，一种是Inspire 6Dof 一种是XHand 12Dof，具体区别可以在 `constant.py` 中查看
+ 2. hand_action 和 proprioception 是手的 action 和state。 dsr是Force Sensitive Resistor (力敏电阻) 它是触觉传感器 (Tactile Sensor) 的原始数据。
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>inspire_cube_picking</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the cube and place in on the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">160+149</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">30</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6"><code>left_gray</code> <br> <code>right_gray</code> <br> 手腕x2</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">灵巧手<br><code>Inspire</code> <br> <code>XHand</code></td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">fsr</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>inspire_egg_carton</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the lid on the egg box</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">75+100</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>inspire_tool_use</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Use a clip to pick up the tea leaves and place them in a cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">153+150+151</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>xhand_tool_use</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Use a clip to pick up the tea leaves and place them in a cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">56+104+73+107+100</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>xhand_kitchen</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Turn off the stove knob, move the pan to the countertop, grab the seasoning and sprinkle it on the food</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">120+100+144+100</td>
+		</tr>
+	</tbody>
+</table>
+
+```python 
+{
+  observation.images.camera_0: Tensor with shape torch.Size([3, 400, 640])
+  observation.state: Tensor with shape torch.Size([12]) # or 6
+  hand_action: Tensor with shape torch.Size([12]) # or 6
+  observation.fsr: Tensor with shape torch.Size([3])
+  observation.pose: Tensor with shape torch.Size([6])
 }
 ```

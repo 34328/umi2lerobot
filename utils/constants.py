@@ -363,21 +363,45 @@ LEGATO_REAL_CONFIG = RobotConfig(
 )
 
 
-# DexUMI 配置 - 灵巧手操作数据
+# DexUMI 配置 - 灵巧手操作数据 (XHand 12 DOF)
 # 数据结构:
 #   camera_0/rgb: (N, 400, 640, 3) - RGB相机图像
-#   fsr: (N, 2) - 力敏电阻传感器
-#   hand_action: (N, 6) - 手部动作 (Inspire Hand 6个电机关节)
+#   fsr: (N, 3) - 力敏电阻传感器
+#   hand_action: (N, 12) - 手部动作 (XHand 12个电机关节)
 #   pose: (N, 6) - 末端位姿 (x, y, z, rx, ry, rz)
-#   proprioception: (N, 6) - 本体感知 (Inspire Hand 6个电机关节)
+#   proprioception: (N, 12) - 本体感知 (XHand 12个电机关节)
 DEXUMI_CONFIG = RobotConfig(
     motors=[
-        "kHandPinky",
-        "kHandRing",
-        "kHandMiddle",
-        "kHandIndex",
-        "kHandThumbBend",
-        "kHandThumbRotation"
+        # inspire1
+        # "kHandPinky",
+        # "kHandRing",
+        # "kHandMiddle",
+        # "kHandIndex",
+        # "kHandThumbBend",
+        # "kHandThumbRotation"
+
+        # Xhand
+        # --- 小指 (Pinky) 2 DoF ---
+        "kHandPinkyTip",       # 指尖弯曲
+        "kHandPinkyBend",      # 指根弯曲
+
+        # --- 无名指 (Ring) 2 DoF ---
+        "kHandRingTip",
+        "kHandRingBend",
+
+        # --- 中指 (Middle) 2 DoF ---
+        "kHandMiddleTip",
+        "kHandMiddleBend",
+
+        # --- 食指 (Index) 3 DoF ---
+        "kHandIndexTip",       # 指尖弯曲
+        "kHandIndexBend",      # 指根弯曲
+        "kHandIndexRotation",  # 侧摆/旋转 (这是 XHand 食指特有的)
+
+        # --- 拇指 (Thumb) 3 DoF ---
+        "kHandThumbTip",       # 指尖弯曲
+        "kHandThumbBend",      # 指根弯曲
+        "kHandThumbRotation"   # 拇指旋转 (对掌)
     ],
 
     cameras=[
@@ -396,7 +420,7 @@ DEXUMI_CONFIG = RobotConfig(
         "pose": "pose",
     },
     demo_pose_shapes={
-        "fsr": (2,),
+        "fsr": (3,),
         "pose": (6,),  # x, y, z, rx, ry, rz
     },
 )

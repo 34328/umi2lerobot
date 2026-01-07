@@ -13,8 +13,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "cup_shelving_real"
-dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/LEGATO/{subtask}")
+subtask = "xhand_kitchen_xhand_wild_4_14_dataset"
+dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/DexUMI/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
@@ -59,8 +59,8 @@ def print_item_obs(name, item):
     print(f"\n--- {name} ---")
     
     # 打印 action
-    if 'action' in item:
-        print(f"Action: {item['action']}")
+    if 'hand_action' in item:
+        print(f"Action: {item['hand_action']}")
     
     # 打印所有非图像的 observation 字段
     for key, value in item.items():
