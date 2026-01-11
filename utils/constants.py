@@ -426,6 +426,52 @@ DEXUMI_CONFIG = RobotConfig(
 )
 
 
+# DexWild 配置 - 单手任务数据结构
+# 相机: head_cam, right_pinky_cam, right_thumb_cam, zed_obs
+# 数值: right_leapv2, right_manus, head_right_tracker, right_tracker_world, zed_right_tracker, zed_pose, zed_ts
+DEXWILD_CONFIG = RobotConfig(
+    motors=[],
+
+    cameras=[
+        "head_cam",
+        "right_pinky_cam",
+        "right_thumb_cam",
+        "zed_obs",
+    ],
+
+    camera_to_image_key={
+        "head_cam": "head_cam",
+        "right_pinky_cam": "right_pinky_cam",
+        "right_thumb_cam": "right_thumb_cam",
+        "zed_obs": "zed_obs",
+    },
+    umi_state_data_name=[],
+    umi_action_data_name=[],
+    
+    # 数值字段
+    demo_pose_sensors={
+        "right_leapv2": "right_leapv2",
+        "right_manus": "right_manus",
+        "head_right_tracker": "head_right_tracker",
+        "right_tracker_world": "right_tracker_world",
+        "zed_right_tracker": "zed_right_tracker",
+        "zed_pose": "zed_pose",
+        "zed_ts": "zed_ts",
+    },
+    demo_pose_shapes={
+        "right_leapv2": (17,),   # 18D - 时间戳列
+        "right_manus": (70,),   # 71D - 时间戳列
+        "head_right_tracker": (7,),  # 8D - 时间戳列
+        "right_tracker_world": (7,),
+        "zed_right_tracker": (7,),
+        "zed_pose": (7,),
+        "zed_ts": (1,),
+    },
+    is_bimanual=False,
+    robot_prefixes=("right",),
+)
+
+
 ROBOT_CONFIGS = {
     # "Unitree_G1_Inspire": G1_INSPIRE_CONFIG,
     "Norm_EE": MV_UMI_CONFIG,
@@ -438,4 +484,6 @@ ROBOT_CONFIGS = {
     "LEGATO_SIM": LEGATO_SIM_CONFIG,
     "LEGATO_REAL": LEGATO_REAL_CONFIG,
     "DexUMI": DEXUMI_CONFIG,
+    "DexWild": DEXWILD_CONFIG,
 }
+

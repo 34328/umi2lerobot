@@ -797,3 +797,118 @@ UMI zarr格式：
   observation.pose: Tensor with shape torch.Size([6])
 }
 ```
+
+## 11. DexWild
+
+这个数据集是 HDF5 格式，包含双手灵巧手操作数据.
+列举一个包含较长字段任务的 数据结构：
+
+
+**🗂️ 详细数据结构表**
+
+| # | Field | Type | Count/Shape | Frame Size | Data Type |
+|---|-------|------|-------------|------------|-----------|
+| 0 | 🦾 intergripper/intergripper | Numeric Sequence | (394, 8) | 8D | float64 |
+| 1 | 🦾 intergripper/intergripper.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 2 | 🦾 left_leapv2/left_leapv2 | Numeric Sequence | (394, 18) | 18D | float64 |
+| 3 | 🦾 left_manus/left_manus | Numeric Sequence | (394, 71) | 71D | float64 |
+| 4 | 🦾 left_manus/left_manus_full | Numeric Sequence | (394, 176) | 176D | float64 |
+| 5 | 📷 left_pinky_cam | Image Sequence | 365 frames | (240, 320, 3) | uint8 |
+| 6 | 📷 left_thumb_cam | Image Sequence | 365 frames | (240, 320, 3) | uint8 |
+| 7 | 🦾 left_tracker/left_tracker_interpolated | Numeric Sequence | (394, 8) | 8D | float64 |
+| 8 | 🦾 left_tracker/left_tracker_raw_interpolated.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 9 | 🦾 left_tracker/left_tracker_world | Numeric Sequence | (394, 8) | 8D | float64 |
+| 10 | 🦾 left_tracker/left_tracker_world.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 11 | 🦾 left_tracker/left_tracker_world_clipped | Numeric Sequence | (394, 8) | 8D | float64 |
+| 12 | 🦾 left_tracker/left_tracker_world_clipped.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 13 | 🦾 left_tracker/left_tracker_world_clipped_abs | Numeric Sequence | (394, 8) | 8D | float64 |
+| 14 | 🦾 left_tracker/left_tracker_world_clipped_abs_raw | Numeric Sequence | (394, 8) | 8D | float64 |
+| 15 | 🦾 left_tracker/left_tracker_world_clipped_abs_raw.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 16 | 🦾 left_tracker/left_tracker_world_rel | Numeric Sequence | (394, 8) | 8D | float64 |
+| 17 | 🦾 left_tracker/tracker_comparison.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 18 | 🦾 left_tracker/zed_left_tracker | Numeric Sequence | (394, 8) | 8D | float64 |
+| 19 | 🦾 right_leapv2/right_leapv2 | Numeric Sequence | (395, 18) | 18D | float64 |
+| 20 | 🦾 right_manus/right_manus | Numeric Sequence | (395, 71) | 71D | float64 |
+| 21 | 🦾 right_manus/right_manus_full | Numeric Sequence | (394, 176) | 176D | float64 |
+| 22 | 📷 right_pinky_cam | Image Sequence | 365 frames | (240, 320, 3) | uint8 |
+| 23 | 📷 right_thumb_cam | Image Sequence | 365 frames | (240, 320, 3) | uint8 |
+| 24 | 🦾 right_tracker/right_tracker_interpolated | Numeric Sequence | (394, 8) | 8D | float64 |
+| 25 | 🦾 right_tracker/right_tracker_raw_interpolated.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 26 | 🦾 right_tracker/right_tracker_world | Numeric Sequence | (394, 8) | 8D | float64 |
+| 27 | 🦾 right_tracker/right_tracker_world.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 28 | 🦾 right_tracker/right_tracker_world_clipped | Numeric Sequence | (394, 8) | 8D | float64 |
+| 29 | 🦾 right_tracker/right_tracker_world_clipped.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 30 | 🦾 right_tracker/right_tracker_world_clipped_abs | Numeric Sequence | (394, 8) | 8D | float64 |
+| 31 | 🦾 right_tracker/right_tracker_world_clipped_abs_raw | Numeric Sequence | (394, 8) | 8D | float64 |
+| 32 | 🦾 right_tracker/right_tracker_world_clipped_abs_raw.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 33 | 🦾 right_tracker/right_tracker_world_rel | Numeric Sequence | (394, 8) | 8D | float64 |
+| 34 | 🦾 right_tracker/tracker_comparison.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 35 | 🦾 right_tracker/zed_right_tracker | Numeric Sequence | (394, 8) | 8D | float64 |
+| 36 | 🦾 timesteps/timesteps | Numeric Sequence | () | Scalar | object |
+| 37 | 🦾 zed/zed_pose | Numeric Sequence | (394, 8) | 8D | int64 |
+| 38 | 🦾 zed/zed_pose.png | Numeric Sequence | (480, 640, 4) | 640D | uint8 |
+| 39 | 🦾 zed/zed_ts | Numeric Sequence | (395, 2) | 2D | int64 |
+| 40 | 📷 zed_obs | Image Sequence | 364 frames | (240, 320, 3) | uint8 |
+
+> **注意**:
+> 1. 这个项目有五种任务，每种任务都有 human 和 robot 两个子任务，遥操本体不同。
+> 2. 每个任务的字段 种类，个数都不一样，不具有统一性，例如有的任务有五个相机视角，有的只有两个，还有的单手任务，还有的双手任务。
+> 3. 上表中 以 .png 作为字段名称结尾的（例如`intergripper/intergripper.png`） 遥操可视化数据，剔除。
+> 4. 细心观察发现，一个epsoide 中每个字段的 数据长度（帧数frames）还会有略微变化，比如 `zed/zed_ts：(395, 2)`, 但是 `left_tracker/left_tracker_world_clipped_abs：（394, 8)` ，硬件本身带来的延迟，论文和源码里面给出了解决方案：**通过时间戳对齐**，所以可用的字段的第一列是纳秒级时间戳，后面列数是数据，而图像的时间戳是文件名keys，匹配对应后提取，这部分代码在 `utils.data_processing.py` 中。
+> 5. 本数据集 HDF5 中有部分epsoide是损坏的，基本上在0.5% 左右，已经转好的Lerobot是过滤了这部分的。
+> 6. 有些任务每个epsoide中的字段对没统一对齐：
+> 		- robo_spray-data任务中有250条左右的epsoide其中right_arm_eef_rel缺失的 用0值代替
+> 		- human_toy_data任务中right_manus_pose  right_manus_full后部分缺失 用0值补齐 
+> 		- 此外还有个别子任务的 部分epsoide 的主视角zed_obs缺失，这里使用黑图补全。
+
+
+
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>clothes_data</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Fold the clothes up</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">1123+295</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">30</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">详见数据</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="2">双</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">灵巧手<br></td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="6">-</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pour_data</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pour the liquid into the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">111+542</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>toy_data</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the toy and put it in the box</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">2285+542</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="3">单</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>florist_data</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Grab this bouquet of flowers and put it in a vase </td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">1014+245</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>spray-data</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Use the spray bottle to spray the cloth on the table</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">387+2820</td>
+		</tr>
+	</tbody>
+</table>
+
