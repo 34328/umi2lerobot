@@ -201,13 +201,19 @@ def populate_dataset(
     hdf5_path: Path,
     robot_type: str,
     task_text: str | None = None,
+    start_episode: int = 0,  # 断点续传：从第几个 episode 开始
 ) -> LeRobotDataset:
     """填充 LeRobot 数据集"""
     
     skipped_episodes = {}  # {ep_name: reason}
     
     with DexWildHDF5Dataset(hdf5_path, robot_type, task_text) as dexwild_dataset:
-        for j in tqdm.tqdm(range(len(dexwild_dataset)), desc="Converting episodes"):
+        total_episodes = len(dexwild_dataset)
+        
+        if start_episode > 0:
+            print(f"\n🔄 断点续传: 跳过前 {start_episode} 个 episode，从第 {start_episode} 个开始")
+        
+        for j in tqdm.tqdm(range(start_episode, total_episodes), desc="Converting episodes", initial=start_episode, total=total_episodes):
             try:
                 episode = dexwild_dataset.get_item(j)
                 
@@ -261,6 +267,7 @@ def dexwild_hdf5_to_lerobot(
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
     fps: int = 30,
     image_shape: tuple[int, int, int] = (240, 320, 3),
+    resume: bool = False,  # 断点续传
 ):
     """将 DexWild HDF5 数据集转换为 LeRobot 格式"""
     
@@ -272,22 +279,59 @@ def dexwild_hdf5_to_lerobot(
     print(f"Output: {dataset_root}")
     print(f"{'='*60}\n")
     
-    if dataset_root.exists():
-        raise FileExistsError(
-            f"Dataset already exists at {dataset_root}. "
-            "Please remove it manually if you want to recreate it."
-        )
+    start_episode = 0
     
-    # 创建空数据集
-    dataset = create_empty_dataset(
-        repo_id,
-        robot_type=robot_type,
-        mode=mode,
-        dataset_config=dataset_config,
-        root=dataset_root,
-        fps=fps,
-        image_shape=image_shape,
-    )
+    if dataset_root.exists():
+        if resume:
+            # 断点续传：检测已转换的 episode 数量
+            try:
+                existing_dataset = LeRobotDataset(repo_id=repo_id, root=dataset_root)
+                start_episode = existing_dataset.meta.total_episodes
+                print(f"\n🔄 检测到已存在的数据集，已转换 {start_episode} 个 episodes")
+                
+                # 清理可能不完整的视频文件（属于 episode >= total_episodes 的）
+                videos_dir = dataset_root / "videos"
+                if videos_dir.exists():
+                    import glob
+                    orphan_files = []
+                    for video_file in videos_dir.glob("*.mp4"):
+                        # 视频文件名格式: observation.images.xxx_episode_XXXXXX.mp4
+                        try:
+                            ep_num = int(video_file.stem.split("_episode_")[-1])
+                            if ep_num >= start_episode:
+                                orphan_files.append(video_file)
+                        except (ValueError, IndexError):
+                            pass
+                    
+                    if orphan_files:
+                        print(f"🧹 清理 {len(orphan_files)} 个未完成的视频文件...")
+                        for f in orphan_files:
+                            f.unlink()
+                
+                dataset = existing_dataset
+            except Exception as e:
+                print(f"⚠️ 无法加载已存在的数据集: {e}")
+                print("将重新开始转换...")
+                import shutil
+                shutil.rmtree(dataset_root)
+                resume = False
+        else:
+            raise FileExistsError(
+                f"Dataset already exists at {dataset_root}. "
+                "Use --resume to continue from where it left off, or remove it manually."
+            )
+    
+    if not resume or start_episode == 0:
+        # 创建空数据集
+        dataset = create_empty_dataset(
+            repo_id,
+            robot_type=robot_type,
+            mode=mode,
+            dataset_config=dataset_config,
+            root=dataset_root,
+            fps=fps,
+            image_shape=image_shape,
+        )
     
     # 填充数据集
     dataset = populate_dataset(
@@ -295,6 +339,7 @@ def dexwild_hdf5_to_lerobot(
         raw_dir,
         robot_type=robot_type,
         task_text=text,
+        start_episode=start_episode,
     )
     
     print(f"\n{'='*60}")
@@ -337,11 +382,14 @@ class ArgsConfig:
     push_to_hub: bool = False
     """是否上传到 Hugging Face Hub"""
     
+    resume: bool = True
+    """断点续传：如果数据集已存在，从上次停止的位置继续"""
+    
     # 高级配置
     use_videos: bool = True
     tolerance_s: float = 0.0001
-    image_writer_processes: int = 10
-    image_writer_threads: int = 5
+    image_writer_processes: int = 24  # 根据 CPU 核心数调整 (32核建议16-20)
+    image_writer_threads: int = 4
     video_backend: str | None = None
 
 
@@ -367,4 +415,5 @@ if __name__ == "__main__":
         dataset_config=dataset_config,
         fps=config.fps,
         image_shape=config.image_shape,
+        resume=config.resume,
     )

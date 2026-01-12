@@ -859,6 +859,7 @@ UMI zarr格式：
 > 6. 有些任务每个epsoide中的字段对没统一对齐：
 > 		- robo_spray-data任务中有250条左右的epsoide其中right_arm_eef_rel缺失的 用0值代替
 > 		- human_toy_data任务中right_manus_pose  right_manus_full后部分缺失 用0值补齐 
+> 		- human_spray_data 任务后半段 head_cam head_right_tracker缺失，用黑图和0值补齐
 > 		- 此外还有个别子任务的 部分epsoide 的主视角zed_obs缺失，这里使用黑图补全。
 
 
@@ -907,7 +908,7 @@ UMI zarr格式：
 		<tr>
 			<td style="border: 1px solid #ccc; padding: 6px;"><strong>spray-data</strong></td>
 			<td style="border: 1px solid #ccc; padding: 6px;">Use the spray bottle to spray the cloth on the table</td>
-			<td style="border: 1px solid #ccc; padding: 6px;" align="center">387+2820</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">387+2787</td>
 		</tr>
 	</tbody>
 </table>
