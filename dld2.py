@@ -9,14 +9,19 @@ from tqdm import tqdm
 
 # --- 配置区 ---
 # 1. 强制镜像和长超时
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+# os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0" # 这里暂时关掉 rust 加速，改用多线程稳定下载
 os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "300"
 
-REPO_ID = "nvidia/PhysicalAI-Robotics-GR00T-X-Embodiment-Sim"
+# 2. HuggingFace Token (访问受限数据集需要)
+# 从环境变量读取 token，设置方法: export HF_TOKEN="your_token_here"
+# 获取 token 地址: https://huggingface.co/settings/tokens
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
+
+REPO_ID = "genrobot2025/10Kh-RealOmin-OpenData"
 # 你想下载的特定文件夹路径
-TARGET_FOLDER = "sim_behavior_r1_pro.task-0000_turning_on_radio"
-LOCAL_DIR = "./rawData"
+TARGET_FOLDER = "Cooking_and_Kitchen_Clean/clean_bowl"
+LOCAL_DIR = "/mnt/raid0/UMI2Lerobot/rawData/10Kh-RealOmin-OpenData"
 MAX_WORKERS = 8  # 并发下载数
 
 def download_file(file_path):
@@ -26,7 +31,8 @@ def download_file(file_path):
             filename=file_path,
             repo_type="dataset",
             local_dir=LOCAL_DIR,
-            local_dir_use_symlinks=False
+            local_dir_use_symlinks=False,
+            token=HF_TOKEN  # 使用 token 访问受限数据集
         )
         return True
     except Exception as e:
@@ -34,7 +40,7 @@ def download_file(file_path):
         return False
 
 def main():
-    api = HfApi()
+    api = HfApi(token=HF_TOKEN)  # 使用 token 访问受限数据集
     
     print(f"📡 正在连接 API，仅获取文件夹 '{TARGET_FOLDER}' 的清单...")
     # 使用 list_repo_tree 递归获取特定文件夹下的文件

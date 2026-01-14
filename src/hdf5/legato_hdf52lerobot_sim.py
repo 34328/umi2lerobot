@@ -45,7 +45,7 @@ sys.path.insert(0, str(_project_root / "lerobot" / "src"))  # umi2lerobot/lerobo
 from lerobot.constants import HF_LEROBOT_HOME
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
-from utils.constants import ROBOT_CONFIGS
+from tools.constants import ROBOT_CONFIGS
 
 
 @dataclasses.dataclass(frozen=True)

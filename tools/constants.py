@@ -24,6 +24,17 @@ class RobotConfig:
     is_bimanual: bool = False
     # 双臂机器人前缀列表
     robot_prefixes: tuple[str, ...] = ("robot0",)
+    
+    # ============================================================================
+    # MCAP 专用配置 (用于 GenRobot 等 MCAP 数据源)
+    # ============================================================================
+    # MCAP 相机 topic 映射: key是lerobot字段名, value是MCAP topic路径
+    mcap_camera_topics: dict[str, str] = dataclasses.field(default_factory=dict)
+    # MCAP 数值数据 topic 映射: key是lerobot字段名, value是(topic路径, 插值类型, 数据形状)
+    # 插值类型: "linear" (线性插值), "pose" (位姿SLERP插值), "nearest" (最近邻)
+    mcap_numeric_topics: dict[str, tuple[str, str, tuple[int, ...]]] = dataclasses.field(default_factory=dict)
+    # MCAP 参考 topic (用作时间对齐基准，通常是主相机)
+    mcap_ref_topic: str = ""
 
 
 
@@ -426,6 +437,40 @@ DEXUMI_CONFIG = RobotConfig(
 )
 
 
+# FastUMI 配置 - 单臂任务数据结构
+# 数据结构 (每个 episode 一个 HDF5 文件):
+#   action: (N, 7) - 7维动作 (x, y, z, rx, ry, rz, gripper)
+#   observations/images/front: (N, 1080, 1920, 3) - 前置相机图像
+#   observations/qpos: (N, 7) - 7维关节位置 (x, y, z, rx, ry, rz, gripper)
+FASTUMI_CONFIG = RobotConfig(
+    motors=[
+        "x",
+        "y",
+        "z",
+        "rx",
+        "ry",
+        "rz",
+        "gripper",
+    ],
+
+    cameras=[
+        "front",
+    ],
+
+    camera_to_image_key={
+        "front": "front",
+    },
+    umi_state_data_name=[],  # 特殊处理，直接读取 observations/qpos 字段
+    umi_action_data_name=[],  # 特殊处理，直接读取 action 字段
+    
+    # FastUMI 数据结构简单，不需要额外的 demo_pose
+    demo_pose_sensors={},
+    demo_pose_shapes={},
+    is_bimanual=False,
+    robot_prefixes=(),
+)
+
+
 # DexWild 配置 - 单手任务数据结构
 # 相机: head_cam, right_pinky_cam, right_thumb_cam, zed_obs
 # 数值: right_leapv2, right_manus, head_right_tracker, right_tracker_world, zed_right_tracker, zed_pose, zed_ts
@@ -472,6 +517,77 @@ DEXWILD_CONFIG = RobotConfig(
 )
 
 
+# GenRobot MCAP 配置 - 10Kh-RealOmin-OpenData 双臂遥操作数据
+# MCAP 数据结构:
+#   robot0/sensor/camera0/compressed: (N, 1300, 1600, 3) - Robot0 相机图像 @30Hz
+#   robot0/vio/eef_pose: (N, 7) - Robot0 末端位姿 [x,y,z,qx,qy,qz,qw] @30Hz
+#   robot0/sensor/magnetic_encoder: (N, 1) - Robot0 夹爪开合 @50Hz
+#   robot0/sensor/imu: (N, 6) - Robot0 IMU [acc_xyz, gyro_xyz] @200Hz
+#   robot1/sensor/camera0/compressed: (N, 1300, 1600, 3) - Robot1 相机图像 @30Hz
+#   robot1/vio/eef_pose: (N, 7) - Robot1 末端位姿 @30Hz
+#   robot1/sensor/magnetic_encoder: (N, 1) - Robot1 夹爪开合 @50Hz
+#   robot1/sensor/imu: (N, 6) - Robot1 IMU @200Hz
+GENROBOT_MCAP_CONFIG = RobotConfig(
+    motors=[],  # 不使用 motors 字段
+
+    cameras=[
+        "robot0_camera0",
+        "robot1_camera0",
+    ],
+
+    camera_to_image_key={
+        "robot0_camera0": "robot0_camera0",
+        "robot1_camera0": "robot1_camera0",
+    },
+    umi_state_data_name=[],
+    umi_action_data_name=[],
+    
+    # 使用 MCAP 原始字段名
+    demo_pose_sensors={
+        "robot0_eef_pose": "robot0_eef_pose",
+        "robot0_gripper": "robot0_gripper",
+        "robot0_imu": "robot0_imu",
+        "robot1_eef_pose": "robot1_eef_pose",
+        "robot1_gripper": "robot1_gripper",
+        "robot1_imu": "robot1_imu",
+    },
+    demo_pose_shapes={
+        "robot0_eef_pose": (7,),  # x, y, z, qx, qy, qz, qw
+        "robot0_gripper": (1,),
+        "robot0_imu": (6,),  # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+        "robot1_eef_pose": (7,),
+        "robot1_gripper": (1,),
+        "robot1_imu": (6,),
+    },
+    is_bimanual=True,
+    robot_prefixes=("robot0", "robot1"),
+    
+    # ============================================================================
+    # MCAP 专用配置
+    # ============================================================================
+    # 参考 topic (用作时间对齐基准)
+    mcap_ref_topic="/robot0/sensor/camera0/compressed",
+    
+    # 相机 topic 映射: lerobot字段名 -> MCAP topic
+    mcap_camera_topics={
+        "robot0_camera0": "/robot0/sensor/camera0/compressed",
+        "robot1_camera0": "/robot1/sensor/camera0/compressed",
+    },
+    
+    # 数值数据 topic 映射: lerobot字段名 -> (MCAP topic, 插值类型, 数据形状)
+    # 插值类型: "linear", "pose", "nearest"
+    mcap_numeric_topics={
+        "robot0_eef_pose": ("/robot0/vio/eef_pose", "pose", (7,)),
+        "robot0_gripper": ("/robot0/sensor/magnetic_encoder", "linear", (1,)),
+        "robot0_imu": ("/robot0/sensor/imu", "linear", (6,)),
+        "robot1_eef_pose": ("/robot1/vio/eef_pose", "pose", (7,)),
+        "robot1_gripper": ("/robot1/sensor/magnetic_encoder", "linear", (1,)),
+        "robot1_imu": ("/robot1/sensor/imu", "linear", (6,)),
+    },
+)
+
+
+
 ROBOT_CONFIGS = {
     # "Unitree_G1_Inspire": G1_INSPIRE_CONFIG,
     "Norm_EE": MV_UMI_CONFIG,
@@ -484,6 +600,8 @@ ROBOT_CONFIGS = {
     "LEGATO_SIM": LEGATO_SIM_CONFIG,
     "LEGATO_REAL": LEGATO_REAL_CONFIG,
     "DexUMI": DEXUMI_CONFIG,
+    "FastUMI": FASTUMI_CONFIG,
     "DexWild": DEXWILD_CONFIG,
+    "GenRobot_MCAP": GENROBOT_MCAP_CONFIG,
 }
 

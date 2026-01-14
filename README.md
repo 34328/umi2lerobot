@@ -12,6 +12,7 @@ conda install ffmpeg -c conda-forge
 cd lerobot
 pip install -e .
 pip install zarr==2.18.3 numcodecs==0.13.1 imagecodecs==2025.3.30
+pip install hdf5 mcap mcap_protobuf_support 
 
 ## 运行  手动指定入参
 python src/convert_umi_to_lerobot.py 
@@ -30,7 +31,7 @@ python src/convert_umi_to_lerobot.py
 ```bash
 python openx_lerobot_visualizer/visualize_dataset_html.py --root /path/to/lerobot/data
 ```
-![alt text](image.png)
+![alt text](images/image.png)
 
 
 ## 数据集
@@ -913,3 +914,138 @@ UMI zarr格式：
 	</tbody>
 </table>
 
+## 12. FastUMI
+这个项目的数据处理的很规范和简介，只有两个字段和一个图像，且是全单手任务。
+
+
+![alt text](images/image-1.png)
+
+
+但是任务个数较多：
+
+<table style="border-collapse: collapse; width: 100%; text-align: center;">
+	<thead>
+		<tr>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Task</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">文本描述</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">episode 个数</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">fps</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">Camera</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">单/双arm</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">夹爪/灵巧手</th>
+			<th style="border: 1px solid #ccc; padding: 6px; text-align: center;">其余模态</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>clean_table</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Clean the desktop with a cloth</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">215</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="21">30</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="21"><code>front</code></td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="21">单</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="21">夹爪</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center" rowspan="21">-</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>cover_beef</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Cover the plate with a lid</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">517</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>fold_towel</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Fold the towel</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">313</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>hotdog_in_rice_cooker</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put Hotdog into the rice cooker and close the lid</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">100</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>hotdog_in_roaster</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put Hotdog into the roaster</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">500</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>open_container</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the container</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">351</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>open_drawer</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the drawer</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">833</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>open_ricecooker</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the rice cooker</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">204</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>open_roaster</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the roaster</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">499</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>open_suitcase</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Open the suitcase</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">20</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pick_bear</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the bear and put it in the box</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">546</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pick_bread</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the bread and put it on the plate</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">498</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pick_cup</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the cup and place it on the mat</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">896</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pick_lid</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the lid and place it in box</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">485</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pick_pen</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the pen and place it in the pen holder</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">558</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>place_plate</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pick up the plate and place it on the cutlery rack</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">499</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>place_pot</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Place the pot on the stove</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">300</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>pour_coke</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Pour the coke into the cup</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">459</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>rearrange_coke</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Put the coke bottle on the second level of the cabinet</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">499</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>sweep_trash</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Sweep the trash into the dustpan</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">512</td>
+		</tr>
+		<tr>
+			<td style="border: 1px solid #ccc; padding: 6px;"><strong>unplug_charger</strong></td>
+			<td style="border: 1px solid #ccc; padding: 6px;">Unplug the charger</td>
+			<td style="border: 1px solid #ccc; padding: 6px;" align="center">453</td>
+		</tr>
+	</tbody>
+</table>

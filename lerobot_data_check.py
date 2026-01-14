@@ -13,8 +13,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "human_clothes_data"
-dataset_root = os.path.expanduser(f"~/.cache/huggingface/lerobot/DexWild/{subtask}")
+subtask = "place_plate"
+dataset_root = os.path.expanduser(f"/mnt/raid0/UMI2Lerobot/lerobot/FastUMI/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
@@ -26,7 +26,7 @@ print(f"FPS: {dataset.fps}")
 
 # 打印第一个样本的层级结构和shape
 print("\n=== 第一个样本结构 ===")
-idx = 6
+idx = 89815
 
 zero_item = dataset[idx-1]
 first_item = dataset[idx]
