@@ -14,6 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# --- 动态添加 lerobot src 目录到 sys.path，使脚本可直接运行 ---
+import sys
+from pathlib import Path
+_SCRIPT_DIR = Path(__file__).resolve().parent
+# 假设 lerobot 仓库在同级目录下
+_LEROBOT_SRC = _SCRIPT_DIR.parent / "lerobot" / "src"
+if _LEROBOT_SRC.exists() and str(_LEROBOT_SRC) not in sys.path:
+    sys.path.insert(0, str(_LEROBOT_SRC))
+# --- End of path setup ---
+
 """
 This script will help you convert any LeRobot dataset already pushed to the hub from codebase version 2.1 to
 3.0. It will:
@@ -450,6 +460,7 @@ def convert_dataset(
     data_file_size_in_mb: int | None = None,
     video_file_size_in_mb: int | None = None,
     root: str | Path | None = None,
+    output_dir: str | Path | None = None,
     push_to_hub: bool = True,
     force_conversion: bool = False,
 ):
@@ -475,13 +486,17 @@ def convert_dataset(
         use_local_dataset = True
         print(f"Using local dataset at {root}")
 
-    old_root = root.parent / f"{root.name}_old"
-    new_root = root.parent / f"{root.name}_v30"
-
-    # Handle old_root cleanup if both old_root and root exist
-    if old_root.is_dir() and root.is_dir():
-        shutil.rmtree(str(root))
-        shutil.move(str(old_root), str(root))
+    # 如果指定了 output_dir，则直接输出到该目录，不进行原地替换
+    if output_dir is not None:
+        new_root = Path(output_dir) / repo_id
+        old_root = None  # 不需要备份原数据
+    else:
+        old_root = root.parent / f"{root.name}_old"
+        new_root = root.parent / f"{root.name}_v30"
+        # Handle old_root cleanup if both old_root and root exist
+        if old_root.is_dir() and root.is_dir():
+            shutil.rmtree(str(root))
+            shutil.move(str(old_root), str(root))
 
     if new_root.is_dir():
         shutil.rmtree(new_root)
@@ -500,8 +515,13 @@ def convert_dataset(
     episodes_videos_metadata = convert_videos(root, new_root, video_file_size_in_mb)
     convert_episodes_metadata(root, new_root, episodes_metadata, episodes_videos_metadata)
 
-    shutil.move(str(root), str(old_root))
-    shutil.move(str(new_root), str(root))
+    # 只有在未指定 output_dir 时才进行原地替换操作
+    if output_dir is None:
+        shutil.move(str(root), str(old_root))
+        shutil.move(str(new_root), str(root))
+        print(f"Conversion complete. Original data backed up to {old_root}")
+    else:
+        print(f"Conversion complete. v3.0 dataset saved to {new_root}")
 
     if push_to_hub:
         hub_api = HfApi()
@@ -554,6 +574,12 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="Local directory to use for downloading/writing the dataset.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=None,
+        help="Output directory for the converted v3.0 dataset. If specified, the original dataset will not be modified.",
     )
     parser.add_argument(
         "--push-to-hub",

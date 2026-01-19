@@ -588,6 +588,50 @@ GENROBOT_MCAP_CONFIG = RobotConfig(
 
 
 
+# ExUMI 配置 - 包含触觉图像和 demo pose
+# 数据结构:
+#   camera0_rgb: (N, 224, 224, 3) - RGB 相机图像
+#   tactile_combined: (N, 460, 680, 3) - 触觉图像
+#   robot0_eef_pos: (N, 3) - 末端位置 (x, y, z)
+#   robot0_eef_rot_axis_angle: (N, 3) - 末端旋转 (rx, ry, rz)
+#   robot0_gripper_width: (N, 1) - 夹爪宽度
+#   robot0_demo_start_pose: (N, 6) - demo 起始位姿
+#   robot0_demo_end_pose: (N, 6) - demo 结束位姿
+EXUMI_CONFIG = RobotConfig(
+    motors=[
+        "x",
+        "y",
+        "z",
+        "rx",
+        "ry",
+        "rz",
+        "gripper",
+    ],
+
+    cameras=[
+        "camera0_rgb",
+        # "tactile_combined",  # 触觉图像作为相机处理
+    ],
+
+    camera_to_image_key={
+        "camera0_rgb": "camera0_rgb",
+        # "tactile_combined": "tactile_combined",
+    },
+    umi_state_data_name=["eef_pos", "eef_rot_axis_angle", "gripper_width"],
+    umi_action_data_name=["eef_pos", "eef_rot_axis_angle", "gripper_width"],
+    
+    # Demo pose 配置
+    demo_pose_sensors={
+        "demo_start_pose": "demo_start_pose",
+        "demo_end_pose": "demo_end_pose",
+    },
+    demo_pose_shapes={
+        "demo_start_pose": (6,),
+        "demo_end_pose": (6,),
+    },
+)
+
+
 ROBOT_CONFIGS = {
     # "Unitree_G1_Inspire": G1_INSPIRE_CONFIG,
     "Norm_EE": MV_UMI_CONFIG,
@@ -603,5 +647,6 @@ ROBOT_CONFIGS = {
     "FastUMI": FASTUMI_CONFIG,
     "DexWild": DEXWILD_CONFIG,
     "GenRobot_MCAP": GENROBOT_MCAP_CONFIG,
+    "ExUMI": EXUMI_CONFIG,
 }
 

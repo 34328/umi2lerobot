@@ -13,8 +13,8 @@ from lerobot.configs import parser
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 # 数据已经位于 ~/.cache/huggingface/lerobot/mv-umi/bottles_rack
-subtask = "place_plate"
-dataset_root = os.path.expanduser(f"/mnt/raid0/UMI2Lerobot/lerobot/FastUMI/{subtask}")
+subtask = "pick_carrot"
+dataset_root = os.path.expanduser(f"/home/unitree/.cache/huggingface/lerobot/exUMI/{subtask}")
 dataset = LeRobotDataset(repo_id=subtask, root=dataset_root)
 
 # 打印数据集基本信息
@@ -26,7 +26,7 @@ print(f"FPS: {dataset.fps}")
 
 # 打印第一个样本的层级结构和shape
 print("\n=== 第一个样本结构 ===")
-idx = 89815
+idx = 5
 
 zero_item = dataset[idx-1]
 first_item = dataset[idx]
