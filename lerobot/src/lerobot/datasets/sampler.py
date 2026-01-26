@@ -21,8 +21,7 @@ import torch
 class EpisodeAwareSampler:
     def __init__(
         self,
-        dataset_from_indices: list[int],
-        dataset_to_indices: list[int],
+        episode_data_index: dict,
         episode_indices_to_use: list | None = None,
         drop_n_first_frames: int = 0,
         drop_n_last_frames: int = 0,
@@ -31,8 +30,7 @@ class EpisodeAwareSampler:
         """Sampler that optionally incorporates episode boundary information.
 
         Args:
-            dataset_from_indices: List of indices containing the start of each episode in the dataset.
-            dataset_to_indices: List of indices containing the end of each episode in the dataset.
+            episode_data_index: Dictionary with keys 'from' and 'to' containing the start and end indices of each episode.
             episode_indices_to_use: List of episode indices to use. If None, all episodes are used.
                                     Assumes that episodes are indexed from 0 to N-1.
             drop_n_first_frames: Number of frames to drop from the start of each episode.
@@ -41,10 +39,12 @@ class EpisodeAwareSampler:
         """
         indices = []
         for episode_idx, (start_index, end_index) in enumerate(
-            zip(dataset_from_indices, dataset_to_indices, strict=True)
+            zip(episode_data_index["from"], episode_data_index["to"], strict=True)
         ):
             if episode_indices_to_use is None or episode_idx in episode_indices_to_use:
-                indices.extend(range(start_index + drop_n_first_frames, end_index - drop_n_last_frames))
+                indices.extend(
+                    range(start_index.item() + drop_n_first_frames, end_index.item() - drop_n_last_frames)
+                )
 
         self.indices = indices
         self.shuffle = shuffle

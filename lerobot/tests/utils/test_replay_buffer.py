@@ -21,13 +21,12 @@ import pytest
 import torch
 
 from lerobot.datasets.lerobot_dataset import LeRobotDataset
-from lerobot.rl.buffer import BatchTransition, ReplayBuffer, random_crop_vectorized
-from lerobot.utils.constants import ACTION, DONE, OBS_IMAGE, OBS_STATE, OBS_STR, REWARD
+from lerobot.utils.buffer import BatchTransition, ReplayBuffer, random_crop_vectorized
 from tests.fixtures.constants import DUMMY_REPO_ID
 
 
 def state_dims() -> list[str]:
-    return [OBS_IMAGE, OBS_STATE]
+    return ["observation.image", "observation.state"]
 
 
 @pytest.fixture
@@ -62,10 +61,10 @@ def create_random_image() -> torch.Tensor:
 
 def create_dummy_transition() -> dict:
     return {
-        OBS_IMAGE: create_random_image(),
-        ACTION: torch.randn(4),
+        "observation.image": create_random_image(),
+        "action": torch.randn(4),
         "reward": torch.tensor(1.0),
-        OBS_STATE: torch.randn(
+        "observation.state": torch.randn(
             10,
         ),
         "done": torch.tensor(False),
@@ -99,8 +98,8 @@ def create_dataset_from_replay_buffer(tmp_path) -> tuple[LeRobotDataset, ReplayB
 
 def create_dummy_state() -> dict:
     return {
-        OBS_IMAGE: create_random_image(),
-        OBS_STATE: torch.randn(
+        "observation.image": create_random_image(),
+        "observation.state": torch.randn(
             10,
         ),
     }
@@ -121,7 +120,7 @@ def get_tensors_memory_consumption(obj, visited_addresses):
 
     if isinstance(obj, torch.Tensor):
         return get_tensor_memory_consumption(obj)
-    elif isinstance(obj, (list | tuple)):
+    elif isinstance(obj, (list, tuple)):
         for item in obj:
             total_size += get_tensors_memory_consumption(item, visited_addresses)
     elif isinstance(obj, dict):
@@ -181,7 +180,7 @@ def test_empty_buffer_sample_raises_error(replay_buffer):
 
 def test_zero_capacity_buffer_raises_error():
     with pytest.raises(ValueError, match="Capacity must be greater than 0."):
-        ReplayBuffer(0, "cpu", [OBS_STR, "next_observation"])
+        ReplayBuffer(0, "cpu", ["observation", "next_observation"])
 
 
 def test_add_transition(replay_buffer, dummy_state, dummy_action):
@@ -204,7 +203,7 @@ def test_add_transition(replay_buffer, dummy_state, dummy_action):
 
 
 def test_add_over_capacity():
-    replay_buffer = ReplayBuffer(2, "cpu", [OBS_STR, "next_observation"])
+    replay_buffer = ReplayBuffer(2, "cpu", ["observation", "next_observation"])
     dummy_state_1 = create_dummy_state()
     dummy_action_1 = create_dummy_action()
 
@@ -341,7 +340,7 @@ def test_sample_batch(replay_buffer):
                     f"{k} should be equal to one of the dummy states."
                 )
 
-    for got_action_item in got_batch_transition[ACTION]:
+    for got_action_item in got_batch_transition["action"]:
         assert any(torch.equal(got_action_item, dummy_action) for dummy_action in dummy_actions), (
             "Actions should be equal to the dummy actions."
         )
@@ -374,22 +373,22 @@ def test_to_lerobot_dataset(tmp_path):
     assert ds.num_frames == 4
 
     for j, value in enumerate(ds):
-        print(torch.equal(value[OBS_IMAGE], buffer.next_states[OBS_IMAGE][j]))
+        print(torch.equal(value["observation.image"], buffer.next_states["observation.image"][j]))
 
     for i in range(len(ds)):
         for feature, value in ds[i].items():
-            if feature == ACTION:
+            if feature == "action":
                 assert torch.equal(value, buffer.actions[i])
-            elif feature == REWARD:
+            elif feature == "next.reward":
                 assert torch.equal(value, buffer.rewards[i])
-            elif feature == DONE:
+            elif feature == "next.done":
                 assert torch.equal(value, buffer.dones[i])
-            elif feature == OBS_IMAGE:
-                # Tensor -> numpy is not precise, so we have some diff there
+            elif feature == "observation.image":
+                # Tenssor -> numpy is not precise, so we have some diff there
                 # TODO: Check and fix it
-                torch.testing.assert_close(value, buffer.states[OBS_IMAGE][i], rtol=0.3, atol=0.003)
-            elif feature == OBS_STATE:
-                assert torch.equal(value, buffer.states[OBS_STATE][i])
+                torch.testing.assert_close(value, buffer.states["observation.image"][i], rtol=0.3, atol=0.003)
+            elif feature == "observation.state":
+                assert torch.equal(value, buffer.states["observation.state"][i])
 
 
 def test_from_lerobot_dataset(tmp_path):
@@ -437,14 +436,14 @@ def test_from_lerobot_dataset(tmp_path):
     )
 
     assert torch.equal(
-        replay_buffer.states[OBS_STATE][: len(replay_buffer)],
-        reconverted_buffer.states[OBS_STATE][: len(replay_buffer)],
+        replay_buffer.states["observation.state"][: len(replay_buffer)],
+        reconverted_buffer.states["observation.state"][: len(replay_buffer)],
     ), "State should be the same after converting to dataset and return back"
 
     for i in range(4):
         torch.testing.assert_close(
-            replay_buffer.states[OBS_IMAGE][i],
-            reconverted_buffer.states[OBS_IMAGE][i],
+            replay_buffer.states["observation.image"][i],
+            reconverted_buffer.states["observation.image"][i],
             rtol=0.4,
             atol=0.004,
         )
@@ -455,16 +454,16 @@ def test_from_lerobot_dataset(tmp_path):
         next_index = (i + 1) % 4
 
         torch.testing.assert_close(
-            replay_buffer.states[OBS_IMAGE][next_index],
-            reconverted_buffer.next_states[OBS_IMAGE][i],
+            replay_buffer.states["observation.image"][next_index],
+            reconverted_buffer.next_states["observation.image"][i],
             rtol=0.4,
             atol=0.004,
         )
 
     for i in range(2, 4):
         assert torch.equal(
-            replay_buffer.states[OBS_STATE][i],
-            reconverted_buffer.next_states[OBS_STATE][i],
+            replay_buffer.states["observation.state"][i],
+            reconverted_buffer.next_states["observation.state"][i],
         )
 
 
@@ -495,7 +494,7 @@ def test_buffer_sample_alignment():
 
     for i in range(50):
         state_sig = batch["state"]["state_value"][i].item()
-        action_val = batch[ACTION][i].item()
+        action_val = batch["action"][i].item()
         reward_val = batch["reward"][i].item()
         next_state_sig = batch["next_state"]["state_value"][i].item()
         is_done = batch["done"][i].item() > 0.5
@@ -564,8 +563,10 @@ def test_check_image_augmentations_with_drq_and_dummy_image_augmentation_functio
     replay_buffer.add(dummy_state, dummy_action, 1.0, dummy_state, False, False)
 
     sampled_transitions = replay_buffer.sample(1)
-    assert torch.all(sampled_transitions["state"][OBS_IMAGE] == 10), "Image augmentations should be applied"
-    assert torch.all(sampled_transitions["next_state"][OBS_IMAGE] == 10), (
+    assert torch.all(sampled_transitions["state"]["observation.image"] == 10), (
+        "Image augmentations should be applied"
+    )
+    assert torch.all(sampled_transitions["next_state"]["observation.image"] == 10), (
         "Image augmentations should be applied"
     )
 
@@ -579,8 +580,8 @@ def test_check_image_augmentations_with_drq_and_default_image_augmentation_funct
 
     # Let's check that it doesn't fail and shapes are correct
     sampled_transitions = replay_buffer.sample(1)
-    assert sampled_transitions["state"][OBS_IMAGE].shape == (1, 3, 84, 84)
-    assert sampled_transitions["next_state"][OBS_IMAGE].shape == (1, 3, 84, 84)
+    assert sampled_transitions["state"]["observation.image"].shape == (1, 3, 84, 84)
+    assert sampled_transitions["next_state"]["observation.image"].shape == (1, 3, 84, 84)
 
 
 def test_random_crop_vectorized_basic():
@@ -619,7 +620,7 @@ def _populate_buffer_for_async_test(capacity: int = 10) -> ReplayBuffer:
     buffer = ReplayBuffer(
         capacity=capacity,
         device="cpu",
-        state_keys=[OBS_IMAGE, OBS_STATE],
+        state_keys=["observation.image", "observation.state"],
         storage_device="cpu",
     )
 
@@ -627,8 +628,8 @@ def _populate_buffer_for_async_test(capacity: int = 10) -> ReplayBuffer:
         img = torch.ones(3, 128, 128) * i
         state_vec = torch.arange(11).float() + i
         state = {
-            OBS_IMAGE: img,
-            OBS_STATE: state_vec,
+            "observation.image": img,
+            "observation.state": state_vec,
         }
         buffer.add(
             state=state,
@@ -647,14 +648,14 @@ def test_async_iterator_shapes_basic():
     iterator = buffer.get_iterator(batch_size=batch_size, async_prefetch=True, queue_size=1)
     batch = next(iterator)
 
-    images = batch["state"][OBS_IMAGE]
-    states = batch["state"][OBS_STATE]
+    images = batch["state"]["observation.image"]
+    states = batch["state"]["observation.state"]
 
     assert images.shape == (batch_size, 3, 128, 128)
     assert states.shape == (batch_size, 11)
 
-    next_images = batch["next_state"][OBS_IMAGE]
-    next_states = batch["next_state"][OBS_STATE]
+    next_images = batch["next_state"]["observation.image"]
+    next_states = batch["next_state"]["observation.state"]
 
     assert next_images.shape == (batch_size, 3, 128, 128)
     assert next_states.shape == (batch_size, 11)
@@ -667,13 +668,13 @@ def test_async_iterator_multiple_iterations():
 
     for _ in range(5):
         batch = next(iterator)
-        images = batch["state"][OBS_IMAGE]
-        states = batch["state"][OBS_STATE]
+        images = batch["state"]["observation.image"]
+        states = batch["state"]["observation.state"]
         assert images.shape == (batch_size, 3, 128, 128)
         assert states.shape == (batch_size, 11)
 
-        next_images = batch["next_state"][OBS_IMAGE]
-        next_states = batch["next_state"][OBS_STATE]
+        next_images = batch["next_state"]["observation.image"]
+        next_states = batch["next_state"]["observation.state"]
         assert next_images.shape == (batch_size, 3, 128, 128)
         assert next_states.shape == (batch_size, 11)
 

@@ -30,7 +30,7 @@ pytest -sx tests/test_stuff.py::test_something
 ```
 
 ```bash
-lerobot-train --some.option=true
+python -m lerobot.scripts.train --some.option=true
 ```
 
 ## SECTION TO REMOVE BEFORE SUBMITTING YOUR PR

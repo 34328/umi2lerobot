@@ -68,30 +68,7 @@ def image_array_to_pil_image(image_array: np.ndarray, range_check: bool = True) 
     return PIL.Image.fromarray(image_array)
 
 
-def write_image(image: np.ndarray | PIL.Image.Image, fpath: Path, compress_level: int = 1):
-    """
-    Saves a NumPy array or PIL Image to a file.
-
-    This function handles both NumPy arrays and PIL Image objects, converting
-    the former to a PIL Image before saving. It includes error handling for
-    the save operation.
-
-    Args:
-        image (np.ndarray | PIL.Image.Image): The image data to save.
-        fpath (Path): The destination file path for the image.
-        compress_level (int, optional): The compression level for the saved
-            image, as used by PIL.Image.save(). Defaults to 1.
-            Refer to: https://github.com/huggingface/lerobot/pull/2135
-            for more details on the default value rationale.
-
-    Raises:
-        TypeError: If the input 'image' is not a NumPy array or a
-            PIL.Image.Image object.
-
-    Side Effects:
-        Prints an error message to the console if the image writing process
-        fails for any reason.
-    """
+def write_image(image: np.ndarray | PIL.Image.Image, fpath: Path):
     try:
         if isinstance(image, np.ndarray):
             img = image_array_to_pil_image(image)
@@ -99,7 +76,7 @@ def write_image(image: np.ndarray | PIL.Image.Image, fpath: Path, compress_level
             img = image
         else:
             raise TypeError(f"Unsupported image type: {type(image)}")
-        img.save(fpath, compress_level=compress_level)
+        img.save(fpath)
     except Exception as e:
         print(f"Error writing image {fpath}: {e}")
 
@@ -110,8 +87,8 @@ def worker_thread_loop(queue: queue.Queue):
         if item is None:
             queue.task_done()
             break
-        image_array, fpath, compress_level = item
-        write_image(image_array, fpath, compress_level)
+        image_array, fpath = item
+        write_image(image_array, fpath)
         queue.task_done()
 
 
@@ -169,13 +146,11 @@ class AsyncImageWriter:
                 p.start()
                 self.processes.append(p)
 
-    def save_image(
-        self, image: torch.Tensor | np.ndarray | PIL.Image.Image, fpath: Path, compress_level: int = 1
-    ):
+    def save_image(self, image: torch.Tensor | np.ndarray | PIL.Image.Image, fpath: Path):
         if isinstance(image, torch.Tensor):
             # Convert tensor to numpy array to minimize main process time
             image = image.cpu().numpy()
-        self.queue.put((image, fpath, compress_level))
+        self.queue.put((image, fpath))
 
     def wait_until_done(self):
         self.queue.join()

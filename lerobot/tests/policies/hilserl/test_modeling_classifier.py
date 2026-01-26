@@ -19,7 +19,6 @@ import torch
 from lerobot.configs.types import FeatureType, NormalizationMode, PolicyFeature
 from lerobot.policies.sac.reward_model.configuration_classifier import RewardClassifierConfig
 from lerobot.policies.sac.reward_model.modeling_classifier import ClassifierOutput
-from lerobot.utils.constants import OBS_IMAGE, REWARD
 from tests.utils import require_package
 
 
@@ -42,10 +41,10 @@ def test_binary_classifier_with_default_params():
 
     config = RewardClassifierConfig()
     config.input_features = {
-        OBS_IMAGE: PolicyFeature(type=FeatureType.VISUAL, shape=(3, 224, 224)),
+        "observation.image": PolicyFeature(type=FeatureType.VISUAL, shape=(3, 224, 224)),
     }
     config.output_features = {
-        REWARD: PolicyFeature(type=FeatureType.REWARD, shape=(1,)),
+        "next.reward": PolicyFeature(type=FeatureType.REWARD, shape=(1,)),
     }
     config.normalization_mapping = {
         "VISUAL": NormalizationMode.IDENTITY,
@@ -57,8 +56,8 @@ def test_binary_classifier_with_default_params():
     batch_size = 10
 
     input = {
-        OBS_IMAGE: torch.rand((batch_size, 3, 128, 128)),
-        REWARD: torch.randint(low=0, high=2, size=(batch_size,)).float(),
+        "observation.image": torch.rand((batch_size, 3, 128, 128)),
+        "next.reward": torch.randint(low=0, high=2, size=(batch_size,)).float(),
     }
 
     images, labels = classifier.extract_images_and_labels(input)
@@ -84,10 +83,10 @@ def test_multiclass_classifier():
     num_classes = 5
     config = RewardClassifierConfig()
     config.input_features = {
-        OBS_IMAGE: PolicyFeature(type=FeatureType.VISUAL, shape=(3, 224, 224)),
+        "observation.image": PolicyFeature(type=FeatureType.VISUAL, shape=(3, 224, 224)),
     }
     config.output_features = {
-        REWARD: PolicyFeature(type=FeatureType.REWARD, shape=(num_classes,)),
+        "next.reward": PolicyFeature(type=FeatureType.REWARD, shape=(num_classes,)),
     }
     config.num_cameras = 1
     config.num_classes = num_classes
@@ -96,8 +95,8 @@ def test_multiclass_classifier():
     batch_size = 10
 
     input = {
-        OBS_IMAGE: torch.rand((batch_size, 3, 128, 128)),
-        REWARD: torch.rand((batch_size, num_classes)),
+        "observation.image": torch.rand((batch_size, 3, 128, 128)),
+        "next.reward": torch.rand((batch_size, num_classes)),
     }
 
     images, labels = classifier.extract_images_and_labels(input)

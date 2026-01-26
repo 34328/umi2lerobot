@@ -23,8 +23,7 @@ from lerobot.configs.default import DatasetConfig
 from lerobot.configs.train import TrainPipelineConfig
 from lerobot.datasets.factory import make_dataset
 from lerobot.optim.factory import make_optimizer_and_scheduler
-from lerobot.policies.factory import make_policy, make_policy_config, make_pre_post_processors
-from lerobot.utils.constants import OBS_STR
+from lerobot.policies.factory import make_policy, make_policy_config
 from lerobot.utils.random_utils import set_seed
 
 
@@ -38,9 +37,7 @@ def get_policy_stats(ds_repo_id: str, policy_name: str, policy_kwargs: dict):
     train_cfg.validate()  # Needed for auto-setting some parameters
 
     dataset = make_dataset(train_cfg)
-    dataset_stats = dataset.meta.stats
     policy = make_policy(train_cfg.policy, ds_meta=dataset.meta)
-    preprocessor, postprocessor = make_pre_post_processors(train_cfg.policy, dataset_stats=dataset_stats)
     policy.train()
 
     optimizer, _ = make_optimizer_and_scheduler(train_cfg, policy)
@@ -52,9 +49,7 @@ def get_policy_stats(ds_repo_id: str, policy_name: str, policy_kwargs: dict):
     )
 
     batch = next(iter(dataloader))
-    batch = preprocessor(batch)
     loss, output_dict = policy.forward(batch)
-
     if output_dict is not None:
         output_dict = {k: v for k, v in output_dict.items() if isinstance(v, torch.Tensor)}
         output_dict["loss"] = loss
@@ -66,13 +61,15 @@ def get_policy_stats(ds_repo_id: str, policy_name: str, policy_kwargs: dict):
     for key, param in policy.named_parameters():
         if param.requires_grad:
             grad_stats[f"{key}_mean"] = param.grad.mean()
-            grad_stats[f"{key}_std"] = param.grad.std() if param.grad.numel() > 1 else torch.tensor(0.0)
+            grad_stats[f"{key}_std"] = (
+                param.grad.std() if param.grad.numel() > 1 else torch.tensor(float(0.0))
+            )
 
     optimizer.step()
     param_stats = {}
     for key, param in policy.named_parameters():
         param_stats[f"{key}_mean"] = param.mean()
-        param_stats[f"{key}_std"] = param.std() if param.numel() > 1 else torch.tensor(0.0)
+        param_stats[f"{key}_std"] = param.std() if param.numel() > 1 else torch.tensor(float(0.0))
 
     optimizer.zero_grad()
     policy.reset()
@@ -91,7 +88,7 @@ def get_policy_stats(ds_repo_id: str, policy_name: str, policy_kwargs: dict):
         # for backward compatibility
         if k == "task":
             continue
-        if k.startswith(OBS_STR):
+        if k.startswith("observation"):
             obs[k] = batch[k]
 
     if hasattr(train_cfg.policy, "n_action_steps"):
@@ -99,12 +96,7 @@ def get_policy_stats(ds_repo_id: str, policy_name: str, policy_kwargs: dict):
     else:
         actions_queue = train_cfg.policy.n_action_repeats
 
-    actions = {}
-    for i in range(actions_queue):
-        unnormalized_action = policy.select_action(obs).contiguous()
-        action_robot = postprocessor(unnormalized_action)
-        actions[str(i)] = action_robot
-
+    actions = {str(i): policy.select_action(obs).contiguous() for i in range(actions_queue)}
     return output_dict, grad_stats, param_stats, actions
 
 
