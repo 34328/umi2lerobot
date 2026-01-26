@@ -7,6 +7,7 @@ GenRobot MCAP to LeRobot 转换脚本
 
 import sys
 import gc
+import cv2
 import tqdm
 import tyro
 import dataclasses
@@ -100,7 +101,8 @@ class GenRobotMCAPDataset:
             pose_data[field_name] = aligned[field_name]
 
         
-        # 关闭 bag
+        # 关闭 bag 并清理内存
+        bag._bag_data.clear()  # 清理解码后的图像数据！关键！
         bag.close()
         
         return {
@@ -127,7 +129,7 @@ def create_empty_dataset(
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
     root: Path | None = None,
     fps: int = 30,
-    image_shape: tuple[int, int, int] = (1300, 1600, 3),
+    image_shape: tuple[int, int, int] = (480, 640, 3),
 ) -> LeRobotDataset:
     """创建空的 LeRobot 数据集"""
     
@@ -174,6 +176,7 @@ def populate_dataset(
     task_text: str | None = None,
     start_episode: int = 0,
     max_episodes: int | None = None,
+    target_size: tuple[int, int] | None = (480, 640),
 ) -> LeRobotDataset:
     """填充 LeRobot 数据集"""
     
@@ -200,17 +203,31 @@ def populate_dataset(
             for i in range(episode_length):
                 frame = {}
                 
-                # 添加图像
+                # 添加图像 (带 resize 和 BGR→RGB 转换)
                 for camera, img_array in cameras.items():
-                    frame[f"observation.images.{camera}"] = img_array[i]
+                    img = img_array[i]
+                    # Resize 图像到目标尺寸 (H, W)
+                    if target_size is not None:
+                        h, w = target_size
+                        if img.shape[:2] != (h, w):
+                            img = cv2.resize(img, (w, h), interpolation=cv2.INTER_AREA)
+                    # BGR → RGB (das-datakit 解码输出是 BGR24)
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    frame[f"observation.images.{camera}"] = img
+                    # 立即清除原始图像引用，让 GC 可以回收
+                    img_array[i] = None
                 
                 # 添加数值数据
                 for pose_name, pose_array in pose_data.items():
                     frame[pose_name] = pose_array[i]
                 
                 dataset.add_frame(frame, task=task)
+                del frame  # 显式删除 frame
             
             dataset.save_episode()
+            
+            # 重置 hf_dataset 释放内存 (LeRobot 的 concatenate_datasets 会导致内存累积)
+            dataset.hf_dataset = dataset.create_hf_dataset()
             
             del episode, cameras, pose_data
             gc.collect()
@@ -241,12 +258,12 @@ def genrobot_mcap_to_lerobot(
     mode: Literal["video", "image"] = "video",
     dataset_config: DatasetConfig = DEFAULT_DATASET_CONFIG,
     fps: int = 30,
-    image_shape: tuple[int, int, int] = (1300, 1600, 3),
+    image_shape: tuple[int, int, int] = (480, 640, 3),
     resume: bool = False,
     max_episodes: int | None = None,
 ):
     """将 GenRobot MCAP 数据转换为 LeRobot 格式"""
-    HF_LEROBOT_HOME = Path("/mnt/raid0/UMI2Lerobot/lerobot")
+    HF_LEROBOT_HOME = Path("/mnt/raid0/UMI2Lerobot/test")
     dataset_root = HF_LEROBOT_HOME / project / repo_id
     
     print(f"\n{'='*60}")
@@ -312,6 +329,7 @@ def genrobot_mcap_to_lerobot(
         task_text=text,
         start_episode=start_episode,
         max_episodes=max_episodes,
+        target_size=(image_shape[0], image_shape[1]),
     )
     
     print(f"\n{'='*60}")
@@ -327,26 +345,26 @@ def genrobot_mcap_to_lerobot(
 class ArgsConfig:
     """配置参数"""
     
-    raw_dir: Path = Path("/mnt/raid0/UMI2Lerobot/rawData/10Kh-RealOmin-OpenData/Cooking_and_Kitchen_Clean/clean_bowl/00001")
+    raw_dir: Path = Path("/mnt/raid0/UMI2Lerobot/rawData/10Kh-RealOmin-OpenData/Cooking_and_Kitchen_Clean/clean_container/00001")
     """原始 MCAP 目录路径 (包含 .mcap 文件)"""
     
     project: str = "GenRobot"
     """项目名称"""
     
-    subtask: str = "clean_bowl"
+    subtask: str = "clean_container"
     """子任务名称"""
     
     robot_type: str = "GenRobot_MCAP"
     """机器人类型"""
     
-    text: str = "XXXXXX"
+    text: str = "Pick up the cloth and clean the container."
     """任务描述"""
     
     fps: int = 30
     """帧率"""
     
-    image_shape: tuple[int, int, int] = (1300, 1600, 3)
-    """图像形状 (H, W, C)"""
+    image_shape: tuple[int, int, int] = (480, 640, 3)
+    """图像形状 (H, W, C) - 默认 480x640，会自动 resize"""
     
     mode: Literal["video", "image"] = "video"
     """存储模式"""
@@ -365,7 +383,7 @@ class ArgsConfig:
     tolerance_s: float = 0.0001
     image_writer_processes: int = 16
     image_writer_threads: int = 4
-    video_backend: str | None = None
+    video_backend: str | None = "pyav"
 
 
 if __name__ == "__main__":
